@@ -51,22 +51,22 @@ async function loadModel(modelURL, textureURL, glContext)
             vertices.push(pointA[1]);
             vertices.push(pointA[2]);
 
-            //vertices.push(texA[0]);
-            //vertices.push(texA[1]);
+            vertices.push(texA[0]);
+            vertices.push(texA[1]);
 
             vertices.push(pointB[0]);
             vertices.push(pointB[1]);
             vertices.push(pointB[2]);
 
-            //vertices.push(texB[0]);
-            //vertices.push(texB[1]);
+            vertices.push(texB[0]);
+            vertices.push(texB[1]);
 
             vertices.push(pointC[0]);
             vertices.push(pointC[1]);
             vertices.push(pointC[2]);
 
-            //vertices.push(texC[0]);
-            //vertices.push(texC[1]);
+            vertices.push(texC[0]);
+            vertices.push(texC[1]);
         }
     }
 

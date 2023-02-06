@@ -79,14 +79,20 @@ function render(timeStamp)
         gl.canvas.height = gl.canvas.clientHeight;
         gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
         glMatrix.mat4.perspective(projectionMatrix,
-            90*Math.PI/180,
+            80*Math.PI/180,
             gl.canvas.clientWidth/gl.canvas.clientHeight,
             0.1, 100);
         gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, projectionMatrix);
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.TRIANGLES, 0, model.length/3);
+    const modelViewMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -3.0]);
+    glMatrix.mat4.rotateY(modelViewMatrix, modelViewMatrix, 0.001 * timeStamp);
+    glMatrix.mat4.rotateZ(modelViewMatrix, modelViewMatrix, 0.002 * timeStamp);
+    gl.uniformMatrix4fv(adsShader.uniforms.modelViewMatrix, false, modelViewMatrix);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 12);
 
     window.requestAnimationFrame(render)
 }
@@ -108,6 +114,10 @@ async function main()
     gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
     gl.clearColor(0,0.4,0.6,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
     const vertexResponse = await fetch('model.v');
     const fragmentResponse = await fetch('ads.f');
@@ -132,7 +142,8 @@ async function main()
     adsShader = {
         program: adsProgram,
         attributes: {
-            vertexPosition: gl.getAttribLocation(adsProgram, "aPosition")
+            vertexPosition: gl.getAttribLocation(adsProgram, "aPosition"),
+            vertexTextureCoord: gl.getAttribLocation(adsProgram, "aTextureCoord")
         },
 
         uniforms: {
@@ -152,12 +163,12 @@ async function main()
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,
-        90*Math.PI/180,
+        80*Math.PI/180,
         gl.canvas.clientWidth/gl.canvas.clientHeight,
         0.1, 100);
 
     const modelViewMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0]);
+    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -3.0]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.vertexAttribPointer(
@@ -165,18 +176,28 @@ async function main()
         3,
         gl.FLOAT,
         false,
-        0,
+        positions.BYTES_PER_ELEMENT * 5,
         0
     );
 
+    gl.vertexAttribPointer(
+        adsShader.attributes.vertexTextureCoord,
+        2,
+        gl.FLOAT,
+        false,
+        positions.BYTES_PER_ELEMENT * 5,
+        positions.BYTES_PER_ELEMENT * 3
+    );
+
     gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
 
     gl.useProgram(adsShader.program);
 
     gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, projectionMatrix);
     gl.uniformMatrix4fv(adsShader.uniforms.modelViewMatrix, false, modelViewMatrix);
 
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+    gl.drawArrays(gl.TRIANGLES, 0, 12);
 
     render(0);
 }
