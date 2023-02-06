@@ -1,30 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-        <link rel="icon" type="image/png" href="favicon.png">
-        <title>
-            Let It Snow
-        </title>
-
-        <style>
-            body{
-                margin: 0;
-            }
-            canvas{
-                display: block;
-                width: 100vw;
-                height: 100vh;
-            }
-        </style>
-
-    </head>
-    <body>
-    <canvas id="canvas"></canvas>
-    <script type="text/javascript" src="gl-matrix.js"></script>
-    <script type="text/javascript" src="globals.js"></script>
-    <script type="text/javascript" src="model.js"></script>
-    <script type="text/javascript" src="render.js"></script>
-    </body>
+<html lang = "en">
+<head>
+    <meta charset="utf-8">
+    <title>The Snow Stopped</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='icon' type='image/png' href='favicon.png'>
+    <style>
+        body{
+            background: #101010;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            font-family: sans-serif;
+            color: white;
+            margin: 0 10% 0 0;
+            font-size: 3rem;
+        }
+        h2{
+            font-family: sans-serif;
+            color: white;
+        }
+        p, ul{
+            font-family: sans-serif;
+            color: white;
+            font-size: 1.5rem;
+            text-justify: inter-word;
+			margin-right: 10%;
+        }
+		li {
+            padding-bottom: 0.3em;
+        }
+        #wrapper {
+            position: fixed;
+            top: 50%;
+            right: 45%;
+            transform: translate(50%, -50%);
+            width: 90%;
+            margin: auto;
+        }
+        a {
+            color: orange;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <section>
+        <h1>
+            Jack Pilley
+        </h1>
+        <hr>
+        <p>The fancy website is under construction; enjoy the minimalism in the meantime.</p>
+        <ul>
+            <li>
+                <a href="https://github.com/JackPilley">Github</a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/jack-pilley/">LinkedIn</a>
+            </li>
+			<li>
+                <a href="https://movingpictures.itch.io/">Itch.io</a>
+            </li>
+        </ul>
+    </section>
+</div>
+</body>
 </html>
