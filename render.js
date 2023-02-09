@@ -92,7 +92,7 @@ function render(timeStamp)
     glMatrix.mat4.rotateZ(modelViewMatrix, modelViewMatrix, 0.002 * timeStamp);
     gl.uniformMatrix4fv(adsShader.uniforms.modelViewMatrix, false, modelViewMatrix);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 12);
+    drawModel(model, adsShader, gl);
 
     window.requestAnimationFrame(render)
 }
@@ -101,7 +101,7 @@ async function main()
 {
     canvas = document.querySelector("#canvas");
     gl = canvas.getContext("webgl2");
-    //Just try everything. Realistically, we only need to check webgl2 and webgl
+
     if(gl === null) gl = canvas.getContext("webgl");
     if(gl === null){
         fallbackRedirect();
@@ -119,8 +119,8 @@ async function main()
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
-    const vertexResponse = await fetch('model.v');
-    const fragmentResponse = await fetch('ads.f');
+    const vertexResponse = await fetch('shaders/model.v');
+    const fragmentResponse = await fetch('shaders/ads.f');
 
     if(!vertexResponse.ok || !fragmentResponse.ok)
     {
@@ -148,18 +148,17 @@ async function main()
 
         uniforms: {
             modelViewMatrix: gl.getUniformLocation(adsProgram, "uModelView"),
-            projectionMatrix: gl.getUniformLocation(adsProgram, "uProjection")
+            projectionMatrix: gl.getUniformLocation(adsProgram, "uProjection"),
+            diffuseTexture: gl.getUniformLocation(adsProgram, "uDiffuseTexture")
         }
     }
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
 
-    const positions = await loadModel("triangle.obj", "", gl);
+    gl.useProgram(adsShader.program);
 
-    model = positions;
-
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    model = await loadModel("models/cube.obj", "textures/grid.png", gl);
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,
@@ -167,37 +166,7 @@ async function main()
         gl.canvas.clientWidth/gl.canvas.clientHeight,
         0.1, 100);
 
-    const modelViewMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -3.0]);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(
-        adsShader.attributes.vertexPosition,
-        3,
-        gl.FLOAT,
-        false,
-        positions.BYTES_PER_ELEMENT * 5,
-        0
-    );
-
-    gl.vertexAttribPointer(
-        adsShader.attributes.vertexTextureCoord,
-        2,
-        gl.FLOAT,
-        false,
-        positions.BYTES_PER_ELEMENT * 5,
-        positions.BYTES_PER_ELEMENT * 3
-    );
-
-    gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
-    gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
-
-    gl.useProgram(adsShader.program);
-
     gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, projectionMatrix);
-    gl.uniformMatrix4fv(adsShader.uniforms.modelViewMatrix, false, modelViewMatrix);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 12);
 
     render(0);
 }
