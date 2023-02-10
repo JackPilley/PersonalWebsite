@@ -12,7 +12,7 @@ function loadTexture(url, glContext)
     //image.
     image.onload = async () => {
         //WebGL needs images to be flipped along the Y axis
-        const bitmap = await createImageBitmap(image, {imageOrientation:"flipY"});
+        const bitmap = await createImageBitmap(image, {imageOrientation:"flipY", premultiplyAlpha:"none"});
 
         //Save the currently bound texture, so we can rebind it at the end, to be clean.
         const oldTexture = gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY);
@@ -45,13 +45,15 @@ function loadTexture(url, glContext)
     return texture;
 }
 
-async function loadModel(modelURL, textureURL, glContext)
+async function loadModel(modelURL, diffuseURL, specularURL, glContext)
 {
-    const texture = loadTexture(textureURL, glContext);
+    const diffuse = loadTexture(diffuseURL, glContext);
+    const specular = loadTexture(specularURL, glContext);
 
     const gl = glContext;
 
     let positions = [];
+    let normals = [];
     let textureCoords = [];
 
     // Interleaved vertex data
@@ -80,45 +82,80 @@ async function loadModel(modelURL, textureURL, glContext)
         {
             positions.push([Number(parts[1]), Number(parts[2]), Number(parts[3])]);
         }
+        else if(type === "vn")
+        {
+            normals.push([Number(parts[1]), Number(parts[2]), Number(parts[3])]);
+        }
         else if(type === "vt")
         {
             textureCoords.push([Number(parts[1]), Number(parts[2])]);
         }
         else if(type === "f")
         {
-            // Individual vertex
+            // Split the indices of the individual vertices. The format is pos/tex/norm
             const indsA = parts[1].split("/");
             const indsB = parts[2].split("/");
             const indsC = parts[3].split("/");
 
+            // Subtract 1 because obj uses 1 based indexing and JS uses 0 based indexing
+            //Get the positions
             const pointA = positions[indsA[0] - 1];
             const pointB = positions[indsB[0] - 1];
             const pointC = positions[indsC[0] - 1];
 
+            //Get the normal vectors
+            const normA = normals[indsA[2] - 1];
+            const normB = normals[indsB[2] - 1];
+            const normC = normals[indsC[2] - 1];
+
+            //Get the texture coordinates
             const texA = textureCoords[indsA[1] - 1];
             const texB = textureCoords[indsB[1] - 1];
             const texC = textureCoords[indsC[1] - 1];
 
+            //Push the interleaved data for the face
+
+            //Position A
             vertices.push(pointA[0]);
             vertices.push(pointA[1]);
             vertices.push(pointA[2]);
 
+            //Texture A
             vertices.push(texA[0]);
             vertices.push(texA[1]);
 
+            //Normal A
+            vertices.push(normA[0]);
+            vertices.push(normA[1]);
+            vertices.push(normA[2]);
+
+            //Position B
             vertices.push(pointB[0]);
             vertices.push(pointB[1]);
             vertices.push(pointB[2]);
 
+            //Texture B
             vertices.push(texB[0]);
             vertices.push(texB[1]);
 
+            //Normal B
+            vertices.push(normB[0]);
+            vertices.push(normB[1]);
+            vertices.push(normB[2]);
+
+            //Position C
             vertices.push(pointC[0]);
             vertices.push(pointC[1]);
             vertices.push(pointC[2]);
 
+            //Texture C
             vertices.push(texC[0]);
             vertices.push(texC[1]);
+
+            //Normal C
+            vertices.push(normC[0]);
+            vertices.push(normC[1]);
+            vertices.push(normC[2]);
 
             vertexCount += 3;
         }
@@ -131,19 +168,20 @@ async function loadModel(modelURL, textureURL, glContext)
 
     gl.bufferData(gl.ARRAY_BUFFER, positionsF32, gl.STATIC_DRAW);
 
-
-
     return {
         buffer: positionBuffer,
-        texture,
+        diffuse,
+        specular,
         size: vertexCount,
-        stride: positionsF32.BYTES_PER_ELEMENT * 5,
+        transformMatrix: glMatrix.mat4.create(),
+        stride: positionsF32.BYTES_PER_ELEMENT * 8,
         posOffset: 0,
-        texOffset: positionsF32.BYTES_PER_ELEMENT * 3
+        texOffset: positionsF32.BYTES_PER_ELEMENT * 3,
+        normOffset: positionsF32.BYTES_PER_ELEMENT * 5
     };
 }
 
-function drawModel(model, shader, glContext)
+function drawModel(model, viewMatrix, shader, glContext)
 {
     const gl = glContext;
 
@@ -166,9 +204,36 @@ function drawModel(model, shader, glContext)
         model.texOffset
     );
 
+    gl.vertexAttribPointer(
+        shader.attributes.vertexNormal,
+        3,
+        gl.FLOAT,
+        false,
+        model.stride,
+        model.normOffset
+    );
+
+    //Set diffuse texture
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, model.texture);
+    gl.bindTexture(gl.TEXTURE_2D, model.diffuse);
     gl.uniform1i(shader.uniforms.diffuseTexture, 0);
+
+    //Set specular texture
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, model.specular);
+    gl.uniform1i(shader.uniforms.specularTexture, 1);
+
+    gl.uniform1f(shader.uniforms.ambientFactor, 0.1);
+
+    let modelViewMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
+    glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, model.transformMatrix);
+
+    let normalMatrix = glMatrix.mat3.create();
+    glMatrix.mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+
+    gl.uniformMatrix4fv(shader.uniforms.modelViewMatrix, false, modelViewMatrix);
+    gl.uniformMatrix3fv(shader.uniforms.normalMatrix, false, normalMatrix);
 
     gl.drawArrays(gl.TRIANGLES, 0, model.size);
 }

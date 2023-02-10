@@ -6,6 +6,9 @@ let viewMatrix;
 
 let model;
 
+let lastTimeStamp;
+
+
 /**
  * Compile a shader of the given type with the given source.
  * @param type
@@ -73,6 +76,9 @@ function fallbackRedirect()
 
 function render(timeStamp)
 {
+    const delta = timeStamp - lastTimeStamp;
+    lastTimeStamp = timeStamp;
+
     if(gl.canvas.width !== gl.canvas.clientWidth || gl.canvas.height !== gl.canvas.clientHeight)
     {
         gl.canvas.width = gl.canvas.clientWidth;
@@ -86,13 +92,12 @@ function render(timeStamp)
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const modelViewMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -3.0]);
-    glMatrix.mat4.rotateY(modelViewMatrix, modelViewMatrix, 0.001 * timeStamp);
-    glMatrix.mat4.rotateZ(modelViewMatrix, modelViewMatrix, 0.002 * timeStamp);
-    gl.uniformMatrix4fv(adsShader.uniforms.modelViewMatrix, false, modelViewMatrix);
+    glMatrix.mat4.rotateY(model.transformMatrix, model.transformMatrix, 0.001 * delta);
+    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.002 * delta);
 
-    drawModel(model, adsShader, gl);
+    gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
+
+    drawModel(model, viewMatrix, adsShader, gl);
 
     window.requestAnimationFrame(render)
 }
@@ -102,15 +107,18 @@ async function main()
     canvas = document.querySelector("#canvas");
     gl = canvas.getContext("webgl2");
 
+    //Get the GL context
     if(gl === null) gl = canvas.getContext("webgl");
     if(gl === null){
         fallbackRedirect();
         return;
     }
 
+    //Make the canvas match the size set by CSS
     gl.canvas.width = gl.canvas.clientWidth;
     gl.canvas.height = gl.canvas.clientHeight;
 
+    //Basic viewport setup
     gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
     gl.clearColor(0,0.4,0.6,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -119,6 +127,7 @@ async function main()
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    //Load shader source
     const vertexResponse = await fetch('shaders/model.v');
     const fragmentResponse = await fetch('shaders/ads.f');
 
@@ -131,6 +140,7 @@ async function main()
     const vertexText = await vertexResponse.text();
     const fragmentText = await fragmentResponse.text();
 
+    //Compile shader
     const adsProgram = loadShaderProgram(vertexText, fragmentText);
 
     if(adsProgram === null)
@@ -139,34 +149,51 @@ async function main()
         return;
     }
 
+    //Find attribute and uniform locations
     adsShader = {
         program: adsProgram,
         attributes: {
             vertexPosition: gl.getAttribLocation(adsProgram, "aPosition"),
-            vertexTextureCoord: gl.getAttribLocation(adsProgram, "aTextureCoord")
+            vertexTextureCoord: gl.getAttribLocation(adsProgram, "aTextureCoord"),
+            vertexNormal: gl.getAttribLocation(adsProgram, "aNormal")
         },
 
         uniforms: {
             modelViewMatrix: gl.getUniformLocation(adsProgram, "uModelView"),
+            viewMatrix: gl.getUniformLocation(adsProgram, "uViewMatrix"),
+            normalMatrix: gl.getUniformLocation(adsProgram, "uNormal"),
             projectionMatrix: gl.getUniformLocation(adsProgram, "uProjection"),
-            diffuseTexture: gl.getUniformLocation(adsProgram, "uDiffuseTexture")
+            diffuseTexture: gl.getUniformLocation(adsProgram, "uDiffuseTexture"),
+            specularTexture: gl.getUniformLocation(adsProgram, "uSpecularTexture"),
+            ambientFactor: gl.getUniformLocation(adsProgram, "uAmbientFactor"),
+            sunDirection: gl.getUniformLocation(adsProgram, "uSunDirection"),
+            sunColor: gl.getUniformLocation(adsProgram, "uSunColor")
         }
     }
 
     gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
     gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexNormal);
 
     gl.useProgram(adsShader.program);
 
-    model = await loadModel("models/cube.obj", "textures/grid.png", gl);
+    model = await loadModel("models/cube.obj", "textures/grid.png", "textures/spec.png",gl);
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,
-        80*Math.PI/180,
+        75*Math.PI/180,
         gl.canvas.clientWidth/gl.canvas.clientHeight,
         0.1, 100);
 
     gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, projectionMatrix);
+
+    viewMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
+
+    gl.uniform4fv(adsShader.uniforms.sunDirection, new Float32Array([0.249136, 0.830454, 0.498272, 0.0]));
+    gl.uniform3fv(adsShader.uniforms.sunColor, new Float32Array([1.0, 1.0, 1.0]));
+
+    lastTimeStamp = performance.now();
 
     render(0);
 }
