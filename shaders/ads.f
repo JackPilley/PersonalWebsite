@@ -16,6 +16,17 @@ uniform vec3 uSunColor;
 
 layout(location = 0) out vec4 FragColor;
 
+//https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+vec3 ACESFilm(vec3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return clamp((x*(a*x+b))/(x*(c*x+d)+e), vec3(0.0), vec3(1.0));
+}
+
 void main()
 {
     vec3 normal = normalize(vNormal);
@@ -37,12 +48,14 @@ void main()
     float specularDot = dot(normal, halfwayVec);
     if(specularDot > 0.0)
     {
-        specular = pow(specularDot, specularSample.a * 100.0);
+        specular = pow(specularDot, (specularSample.a + 0.01) * 1000.0);
     }
 
     //Diffuse and ambient lighting are based on the diffuse texture, specular lighting is based on the
     //specular texture
     vec3 finalColor = (diffuse + ambient) * diffuseSample.xyz + specular * specularSample.xyz;
+
+    finalColor = ACESFilm(finalColor);
 
     FragColor = vec4(finalColor, diffuseSample.a);
 }

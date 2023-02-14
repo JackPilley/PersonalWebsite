@@ -113,6 +113,33 @@ async function loadModel(modelURL, diffuseURL, specularURL, glContext)
             const texB = textureCoords[indsB[1] - 1];
             const texC = textureCoords[indsC[1] - 1];
 
+            //Calculate tangents
+            let edge1 = [0,0,0];
+            let edge2 = [0,0,0];
+            let uvDelta1 = [0,0];
+            let uvDelta2 = [0,0];
+
+            edge1[0] = pointB[0] - pointA[0];
+            edge1[1] = pointB[1] - pointA[1];
+            edge1[2] = pointB[2] - pointA[2];
+
+            edge2[0] = pointC[0] - pointA[0];
+            edge2[1] = pointC[1] - pointA[1];
+            edge2[2] = pointC[2] - pointA[2];
+
+            uvDelta1[0] = texB[0] - texA[0];
+            uvDelta1[1] = texB[1] - texA[1];
+
+            uvDelta2[0] = texC[0] - texA[0];
+            uvDelta2[1] = texC[1] - texA[1];
+
+            const f = 1.0/(uvDelta1[0] * uvDelta2[1] - uvDelta2[0] * uvDelta1[1]);
+
+            let tangent = [0,0,0];
+            tangent[0] = f * (uvDelta2[1] * edge1[0] - uvDelta1[1] * edge2[0]);
+            tangent[1] = f * (uvDelta2[1] * edge1[1] - uvDelta1[1] * edge2[1]);
+            tangent[2] = f * (uvDelta2[1] * edge1[2] - uvDelta1[1] * edge2[2]);
+
             //Push the interleaved data for the face
 
             //Position A
