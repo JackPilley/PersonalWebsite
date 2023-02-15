@@ -4,19 +4,26 @@ precision mediump float;
 in vec3 aPosition;
 in vec2 aTextureCoord;
 in vec3 aNormal;
+in vec3 aTangent;
+in vec3 aBitanget;
 
 out vec3 vPosition;
 out vec2 vTextureCoord;
-out vec3 vNormal;
+out mat3 vTBN;
 
-uniform mat4 uModelView;
-uniform mat3 uNormal;
-uniform mat4 uProjection;
+uniform mat4 uModelViewMatrix;
+uniform mat3 uNormalMatrix;
+uniform mat4 uProjectionMatrix;
 
 void main()
 {
-    vPosition = (uModelView * vec4(aPosition, 1.0f)).xyz;
+    vPosition = (uModelViewMatrix * vec4(aPosition, 1.0f)).xyz;
     vTextureCoord = aTextureCoord;
-    vNormal = uNormal * aNormal;
-    gl_Position = uProjection * uModelView * vec4(aPosition, 1.0f);
+
+    vec3 tangent = normalize(uNormalMatrix * aTangent);
+    vec3 bitanget = normalize(uNormalMatrix * aBitanget);
+    vec3 normal = normalize(uNormalMatrix * aNormal);
+    vTBN = mat3(tangent, bitanget, normal);
+
+    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0f);
 }

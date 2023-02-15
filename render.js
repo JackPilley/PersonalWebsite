@@ -92,8 +92,11 @@ function render(timeStamp)
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    glMatrix.mat4.rotateY(model.transformMatrix, model.transformMatrix, 0.001 * delta);
-    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.002 * delta);
+    //glMatrix.mat4.rotateX(model.transformMatrix, model.transformMatrix, 0.001 * delta);
+
+    viewMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
+    glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.001 * timeStamp);
 
     gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
@@ -155,16 +158,19 @@ async function main()
         attributes: {
             vertexPosition: gl.getAttribLocation(adsProgram, "aPosition"),
             vertexTextureCoord: gl.getAttribLocation(adsProgram, "aTextureCoord"),
-            vertexNormal: gl.getAttribLocation(adsProgram, "aNormal")
+            vertexNormal: gl.getAttribLocation(adsProgram, "aNormal"),
+            vertexTangent: gl.getAttribLocation(adsProgram, "aTangent"),
+            vertexBitangent: gl.getAttribLocation(adsProgram, "aBitanget")
         },
 
         uniforms: {
-            modelViewMatrix: gl.getUniformLocation(adsProgram, "uModelView"),
+            modelViewMatrix: gl.getUniformLocation(adsProgram, "uModelViewMatrix"),
             viewMatrix: gl.getUniformLocation(adsProgram, "uViewMatrix"),
-            normalMatrix: gl.getUniformLocation(adsProgram, "uNormal"),
-            projectionMatrix: gl.getUniformLocation(adsProgram, "uProjection"),
+            normalMatrix: gl.getUniformLocation(adsProgram, "uNormalMatrix"),
+            projectionMatrix: gl.getUniformLocation(adsProgram, "uProjectionMatrix"),
             diffuseTexture: gl.getUniformLocation(adsProgram, "uDiffuseTexture"),
             specularTexture: gl.getUniformLocation(adsProgram, "uSpecularTexture"),
+            normalTexture: gl.getUniformLocation(adsProgram, "uNormalTexture"),
             ambientFactor: gl.getUniformLocation(adsProgram, "uAmbientFactor"),
             sunDirection: gl.getUniformLocation(adsProgram, "uSunDirection"),
             sunColor: gl.getUniformLocation(adsProgram, "uSunColor")
@@ -174,10 +180,12 @@ async function main()
     gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
     gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
     gl.enableVertexAttribArray(adsShader.attributes.vertexNormal);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexTangent);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexBitangent);
 
     gl.useProgram(adsShader.program);
 
-    model = await loadModel("models/cube.obj", "textures/grid.png", "textures/spec.png",gl);
+    model = await loadModel("models/cube.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,

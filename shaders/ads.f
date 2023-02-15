@@ -3,10 +3,11 @@ precision mediump float;
 
 in vec3 vPosition;
 in vec2 vTextureCoord;
-in vec3 vNormal;
+in mat3 vTBN;
 
 uniform sampler2D uDiffuseTexture;
 uniform sampler2D uSpecularTexture;
+uniform sampler2D uNormalTexture;
 uniform float uAmbientFactor;
 
 uniform mat4 uViewMatrix;
@@ -29,11 +30,13 @@ vec3 ACESFilm(vec3 x)
 
 void main()
 {
-    vec3 normal = normalize(vNormal);
     vec3 sunDir = (uViewMatrix * uSunDirection).xyz;
 
     vec4 diffuseSample = texture(uDiffuseTexture, vTextureCoord);
     vec4 specularSample = texture(uSpecularTexture, vTextureCoord);
+    vec4 normalSample = texture(uNormalTexture, vTextureCoord);
+
+    vec3 normal = normalize(vTBN * (normalSample.xyz * 2.0 - 1.0));
 
     vec3 ambient = uAmbientFactor  * uSunColor;
 

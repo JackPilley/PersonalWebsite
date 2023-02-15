@@ -45,10 +45,11 @@ function loadTexture(url, glContext)
     return texture;
 }
 
-async function loadModel(modelURL, diffuseURL, specularURL, glContext)
+async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext)
 {
     const diffuse = loadTexture(diffuseURL, glContext);
     const specular = loadTexture(specularURL, glContext);
+    const normal = loadTexture(normalURL, glContext);
 
     const gl = glContext;
 
@@ -140,6 +141,11 @@ async function loadModel(modelURL, diffuseURL, specularURL, glContext)
             tangent[1] = f * (uvDelta2[1] * edge1[1] - uvDelta1[1] * edge2[1]);
             tangent[2] = f * (uvDelta2[1] * edge1[2] - uvDelta1[1] * edge2[2]);
 
+            let bitangent = [0,0,0];
+            bitangent[0] = f * (-uvDelta2[0] * edge1[0] + uvDelta1[0] * edge2[0]);
+            bitangent[1] = f * (-uvDelta2[0] * edge1[1] + uvDelta1[0] * edge2[1]);
+            bitangent[2] = f * (-uvDelta2[0] * edge1[2] + uvDelta1[0] * edge2[2]);
+
             //Push the interleaved data for the face
 
             //Position A
@@ -156,6 +162,14 @@ async function loadModel(modelURL, diffuseURL, specularURL, glContext)
             vertices.push(normA[1]);
             vertices.push(normA[2]);
 
+            //Tangent and Bitangent, which is the same for all vertices in the face
+            vertices.push(tangent[0]);
+            vertices.push(tangent[1]);
+            vertices.push(tangent[2]);
+            vertices.push(bitangent[0]);
+            vertices.push(bitangent[1]);
+            vertices.push(bitangent[2]);
+
             //Position B
             vertices.push(pointB[0]);
             vertices.push(pointB[1]);
@@ -169,6 +183,14 @@ async function loadModel(modelURL, diffuseURL, specularURL, glContext)
             vertices.push(normB[0]);
             vertices.push(normB[1]);
             vertices.push(normB[2]);
+
+            //Tangent and Bitangent, which is the same for all vertices in the face
+            vertices.push(tangent[0]);
+            vertices.push(tangent[1]);
+            vertices.push(tangent[2]);
+            vertices.push(bitangent[0]);
+            vertices.push(bitangent[1]);
+            vertices.push(bitangent[2]);
 
             //Position C
             vertices.push(pointC[0]);
@@ -184,27 +206,38 @@ async function loadModel(modelURL, diffuseURL, specularURL, glContext)
             vertices.push(normC[1]);
             vertices.push(normC[2]);
 
+            //Tangent and Bitangent, which is the same for all vertices in the face
+            vertices.push(tangent[0]);
+            vertices.push(tangent[1]);
+            vertices.push(tangent[2]);
+            vertices.push(bitangent[0]);
+            vertices.push(bitangent[1]);
+            vertices.push(bitangent[2]);
+
             vertexCount += 3;
         }
     }
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
-    const positionsF32 = new Float32Array(vertices);
+    const verticesF32 = new Float32Array(vertices);
 
-    gl.bufferData(gl.ARRAY_BUFFER, positionsF32, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, verticesF32, gl.STATIC_DRAW);
 
     return {
-        buffer: positionBuffer,
+        buffer: vertexBuffer,
         diffuse,
         specular,
+        normal,
         size: vertexCount,
         transformMatrix: glMatrix.mat4.create(),
-        stride: positionsF32.BYTES_PER_ELEMENT * 8,
+        stride: verticesF32.BYTES_PER_ELEMENT * 14,
         posOffset: 0,
-        texOffset: positionsF32.BYTES_PER_ELEMENT * 3,
-        normOffset: positionsF32.BYTES_PER_ELEMENT * 5
+        texOffset: verticesF32.BYTES_PER_ELEMENT * 3,
+        normOffset: verticesF32.BYTES_PER_ELEMENT * 5,
+        tangentOffset: verticesF32.BYTES_PER_ELEMENT * 8,
+        bitangentOffset: verticesF32.BYTES_PER_ELEMENT * 11
     };
 }
 
@@ -240,6 +273,24 @@ function drawModel(model, viewMatrix, shader, glContext)
         model.normOffset
     );
 
+    gl.vertexAttribPointer(
+        shader.attributes.vertexTangent,
+        3,
+        gl.FLOAT,
+        false,
+        model.stride,
+        model.tangentOffset
+    );
+
+    gl.vertexAttribPointer(
+        shader.attributes.vertexBitangent,
+        3,
+        gl.FLOAT,
+        false,
+        model.stride,
+        model.bitangentOffset
+    );
+
     //Set diffuse texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, model.diffuse);
@@ -250,7 +301,12 @@ function drawModel(model, viewMatrix, shader, glContext)
     gl.bindTexture(gl.TEXTURE_2D, model.specular);
     gl.uniform1i(shader.uniforms.specularTexture, 1);
 
-    gl.uniform1f(shader.uniforms.ambientFactor, 0.1);
+    //Set normal texture
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, model.normal);
+    gl.uniform1i(shader.uniforms.normalTexture, 2);
+
+    gl.uniform1f(shader.uniforms.ambientFactor, 0.3);
 
     let modelViewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
