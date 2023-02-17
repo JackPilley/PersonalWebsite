@@ -114,7 +114,7 @@ async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext
             const texB = textureCoords[indsB[1] - 1];
             const texC = textureCoords[indsC[1] - 1];
 
-            //Calculate tangents
+            //Calculate tangents and bitangents
             let edge1 = [0,0,0];
             let edge2 = [0,0,0];
             let uvDelta1 = [0,0];
@@ -149,70 +149,43 @@ async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext
             //Push the interleaved data for the face
 
             //Position A
-            vertices.push(pointA[0]);
-            vertices.push(pointA[1]);
-            vertices.push(pointA[2]);
+            vertices.push(pointA[0], pointA[1], pointA[2]);
 
             //Texture A
-            vertices.push(texA[0]);
-            vertices.push(texA[1]);
+            vertices.push(texA[0], texA[1]);
 
             //Normal A
-            vertices.push(normA[0]);
-            vertices.push(normA[1]);
-            vertices.push(normA[2]);
+            vertices.push(normA[0], normA[1], normA[2]);
 
             //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0]);
-            vertices.push(tangent[1]);
-            vertices.push(tangent[2]);
-            vertices.push(bitangent[0]);
-            vertices.push(bitangent[1]);
-            vertices.push(bitangent[2]);
+            vertices.push(tangent[0], tangent[1], tangent[2]);
+            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
 
             //Position B
-            vertices.push(pointB[0]);
-            vertices.push(pointB[1]);
-            vertices.push(pointB[2]);
+            vertices.push(pointB[0], pointB[1], pointB[2]);
 
             //Texture B
-            vertices.push(texB[0]);
-            vertices.push(texB[1]);
+            vertices.push(texB[0], texB[1]);
 
             //Normal B
-            vertices.push(normB[0]);
-            vertices.push(normB[1]);
-            vertices.push(normB[2]);
+            vertices.push(normB[0], normB[1], normB[2]);
 
             //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0]);
-            vertices.push(tangent[1]);
-            vertices.push(tangent[2]);
-            vertices.push(bitangent[0]);
-            vertices.push(bitangent[1]);
-            vertices.push(bitangent[2]);
+            vertices.push(tangent[0], tangent[1], tangent[2]);
+            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
 
             //Position C
-            vertices.push(pointC[0]);
-            vertices.push(pointC[1]);
-            vertices.push(pointC[2]);
+            vertices.push(pointC[0], pointC[1], pointC[2]);
 
             //Texture C
-            vertices.push(texC[0]);
-            vertices.push(texC[1]);
+            vertices.push(texC[0], texC[1]);
 
             //Normal C
-            vertices.push(normC[0]);
-            vertices.push(normC[1]);
-            vertices.push(normC[2]);
+            vertices.push(normC[0], normC[1], normC[2]);
 
             //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0]);
-            vertices.push(tangent[1]);
-            vertices.push(tangent[2]);
-            vertices.push(bitangent[0]);
-            vertices.push(bitangent[1]);
-            vertices.push(bitangent[2]);
+            vertices.push(tangent[0], tangent[1],tangent[2]);
+            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
 
             vertexCount += 3;
         }
