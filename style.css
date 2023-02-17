@@ -1,0 +1,57 @@
+body{
+    background: #101010;
+    margin: 0;
+}
+#page-title{
+    font-size: 4.5rem;
+}
+h1 {
+    font-family: sans-serif;
+    color: white;
+    margin: 0 10% 0 0;
+    font-size: 3rem;
+}
+h2{
+    font-family: sans-serif;
+    color: white;
+    font-size: 2rem;
+}
+p, ul{
+    font-family: sans-serif;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 10%;
+}
+li {
+    padding-bottom: 0.3em;
+}
+#wrapper {
+    margin-top: 5vh;
+    margin-left: 10%;
+}
+a{
+    color: orange;
+    text-decoration: none;
+}
+a:hover{
+    text-decoration: underline;
+}
+#portfolio-container{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+.portfolio-item{
+    flex-basis: 32%;
+    min-width: 30rem;
+    flex-grow: 1;
+}
+.portfolio-item > p {
+    padding-left: 1rem;
+}
+
+/*@media only screen and (max-width: 900px){
+    .portfolio-item{
+        flex-basis: 100%;
+    }
+}*/
