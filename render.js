@@ -98,6 +98,8 @@ function render(timeStamp)
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.001 * timeStamp);
 
+    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.002 * delta);
+
     gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
     drawModel(model, viewMatrix, adsShader, gl);

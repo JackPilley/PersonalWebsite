@@ -51,14 +51,15 @@ void main()
     float specularDot = dot(normal, halfwayVec);
     if(specularDot > 0.0)
     {
-        specular = pow(specularDot, (specularSample.a + 0.01) * 1000.0);
+        float gloss = exp2(specularSample.a*5.0 + 10.0);
+        specular = pow(specularDot, gloss);
     }
 
     //Diffuse and ambient lighting are based on the diffuse texture, specular lighting is based on the
     //specular texture
     vec3 finalColor = (diffuse + ambient) * diffuseSample.xyz + specular * specularSample.xyz;
 
-    finalColor = ACESFilm(finalColor);
+    //finalColor = ACESFilm(finalColor);
 
-    FragColor = vec4(finalColor, diffuseSample.a);
+    FragColor = vec4(pow(finalColor, vec3(1.0/2.2)), diffuseSample.a);
 }

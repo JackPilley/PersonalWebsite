@@ -306,7 +306,7 @@ function drawModel(model, viewMatrix, shader, glContext)
     gl.bindTexture(gl.TEXTURE_2D, model.normal);
     gl.uniform1i(shader.uniforms.normalTexture, 2);
 
-    gl.uniform1f(shader.uniforms.ambientFactor, 0.3);
+    gl.uniform1f(shader.uniforms.ambientFactor, 0.1);
 
     let modelViewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
