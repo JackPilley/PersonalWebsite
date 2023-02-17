@@ -96,9 +96,9 @@ function render(timeStamp)
 
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
-    glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.001 * timeStamp);
+    glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
-    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.002 * delta);
+    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.001 * delta);
 
     gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
