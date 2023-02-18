@@ -187,7 +187,7 @@ async function main()
 
     gl.useProgram(adsShader.program);
 
-    model = await loadModel("models/cube.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    model = await loadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,

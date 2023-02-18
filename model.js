@@ -59,6 +59,11 @@ async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext
 
     // Interleaved vertex data
     let vertices = [];
+    //Vertex indices
+    let indices = [];
+    //Map of position, texture coordinate, and normal vector combinations we've already seen
+    //Used to determine vertex indices
+    let vertexMap = new Map();
 
     const modelResponse = await fetch(modelURL);
     if(!modelResponse.ok) return null;
@@ -67,7 +72,7 @@ async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext
 
     const modelLines = modelText.split("\n");
 
-    let vertexCount = 0;
+    let indexCount = 0;
 
     for(let l of modelLines)
     {
@@ -148,69 +153,103 @@ async function loadModel(modelURL, diffuseURL, specularURL, normalURL, glContext
 
             //Push the interleaved data for the face
 
-            //Position A
-            vertices.push(pointA[0], pointA[1], pointA[2]);
+            //If we've not seen this combination of data before then add it to the array and map its index
+            if(vertexMap.get(parts[1]) === undefined)
+            {
+                indices.push(indexCount);
+                vertexMap.set(parts[1], indexCount);
+                indexCount++;
 
-            //Texture A
-            vertices.push(texA[0], texA[1]);
+                //Position A
+                vertices.push(pointA[0], pointA[1], pointA[2]);
+                //Texture A
+                vertices.push(texA[0], texA[1]);
+                //Normal A
+                vertices.push(normA[0], normA[1], normA[2]);
+                //Tangent and Bitangent, which is the same for all vertices in the face
+                vertices.push(tangent[0], tangent[1], tangent[2]);
+                vertices.push(bitangent[0], bitangent[1], bitangent[2]);
+            }
+            //Otherwise get the index of the existing data
+            else
+            {
+                indices.push(vertexMap.get(parts[1]));
+            }
 
-            //Normal A
-            vertices.push(normA[0], normA[1], normA[2]);
+            //If we've not seen this combination of data before then add it to the array and map its index
+            if(vertexMap.get(parts[2]) === undefined)
+            {
+                indices.push(indexCount);
+                vertexMap.set(parts[2], indexCount);
+                indexCount++;
 
-            //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0], tangent[1], tangent[2]);
-            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
+                //Position B
+                vertices.push(pointB[0], pointB[1], pointB[2]);
+                //Texture B
+                vertices.push(texB[0], texB[1]);
+                //Normal B
+                vertices.push(normB[0], normB[1], normB[2]);
+                //Tangent and Bitangent, which is the same for all vertices in the face
+                vertices.push(tangent[0], tangent[1], tangent[2]);
+                vertices.push(bitangent[0], bitangent[1], bitangent[2]);
+            }
+            //Otherwise get the index of the existing data
+            else
+            {
+                indices.push(vertexMap.get(parts[2]));
+            }
 
-            //Position B
-            vertices.push(pointB[0], pointB[1], pointB[2]);
+            //If we've not seen this combination of data before then add it to the array and map its index
+            if(vertexMap.get(parts[3]) === undefined)
+            {
+                indices.push(indexCount);
+                vertexMap.set(parts[3], indexCount);
+                indexCount++;
 
-            //Texture B
-            vertices.push(texB[0], texB[1]);
-
-            //Normal B
-            vertices.push(normB[0], normB[1], normB[2]);
-
-            //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0], tangent[1], tangent[2]);
-            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
-
-            //Position C
-            vertices.push(pointC[0], pointC[1], pointC[2]);
-
-            //Texture C
-            vertices.push(texC[0], texC[1]);
-
-            //Normal C
-            vertices.push(normC[0], normC[1], normC[2]);
-
-            //Tangent and Bitangent, which is the same for all vertices in the face
-            vertices.push(tangent[0], tangent[1],tangent[2]);
-            vertices.push(bitangent[0], bitangent[1], bitangent[2]);
-
-            vertexCount += 3;
+                //Position C
+                vertices.push(pointC[0], pointC[1], pointC[2]);
+                //Texture C
+                vertices.push(texC[0], texC[1]);
+                //Normal C
+                vertices.push(normC[0], normC[1], normC[2]);
+                //Tangent and Bitangent, which is the same for all vertices in the face
+                vertices.push(tangent[0], tangent[1], tangent[2]);
+                vertices.push(bitangent[0], bitangent[1], bitangent[2]);
+            }
+            //Otherwise get the index of the existing data
+            else
+            {
+                indices.push(vertexMap.get(parts[3]));
+            }
         }
     }
 
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-
     const verticesF32 = new Float32Array(vertices);
-
     gl.bufferData(gl.ARRAY_BUFFER, verticesF32, gl.STATIC_DRAW);
 
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    const indicesU16 = new Uint16Array(indices);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesU16, gl.STATIC_DRAW);
+
     return {
-        buffer: vertexBuffer,
+        dataBuffer: vertexBuffer,
+        indexBuffer: indexBuffer,
         diffuse,
         specular,
         normal,
-        size: vertexCount,
+        size: indices.length,
         transformMatrix: glMatrix.mat4.create(),
         stride: verticesF32.BYTES_PER_ELEMENT * 14,
         posOffset: 0,
         texOffset: verticesF32.BYTES_PER_ELEMENT * 3,
         normOffset: verticesF32.BYTES_PER_ELEMENT * 5,
         tangentOffset: verticesF32.BYTES_PER_ELEMENT * 8,
-        bitangentOffset: verticesF32.BYTES_PER_ELEMENT * 11
+        bitangentOffset: verticesF32.BYTES_PER_ELEMENT * 11,
+        verticesF32,
+        indicesU16
     };
 }
 
@@ -218,7 +257,8 @@ function drawModel(model, viewMatrix, shader, glContext)
 {
     const gl = glContext;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, model.buffer);
+    //Set attribute pointers
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.dataBuffer);
     gl.vertexAttribPointer(
         shader.attributes.vertexPosition,
         3,
@@ -281,15 +321,18 @@ function drawModel(model, viewMatrix, shader, glContext)
 
     gl.uniform1f(shader.uniforms.ambientFactor, 0.1);
 
+    //Multiply the model's transform and the view matrix
     let modelViewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
     glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, model.transformMatrix);
 
+    //Use the model view matrix to generate the normal transform matrix
     let normalMatrix = glMatrix.mat3.create();
     glMatrix.mat3.normalFromMat4(normalMatrix, modelViewMatrix);
 
     gl.uniformMatrix4fv(shader.uniforms.modelViewMatrix, false, modelViewMatrix);
     gl.uniformMatrix3fv(shader.uniforms.normalMatrix, false, normalMatrix);
 
-    gl.drawArrays(gl.TRIANGLES, 0, model.size);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
+    gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
 }
