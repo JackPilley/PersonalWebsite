@@ -12,7 +12,7 @@ uniform float uAmbientFactor;
 
 uniform mat4 uViewMatrix;
 
-uniform vec4 uSunDirection;
+uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
 
 layout(location = 0) out vec4 FragColor;
@@ -30,7 +30,7 @@ vec3 ACESFilm(vec3 x)
 
 void main()
 {
-    vec3 sunDir = (uViewMatrix * uSunDirection).xyz;
+    vec3 sunDir = (uViewMatrix * vec4(uSunDirection, 0.0)).xyz;
 
     vec4 diffuseSample = texture(uDiffuseTexture, vTextureCoord);
     vec4 specularSample = texture(uSpecularTexture, vTextureCoord);

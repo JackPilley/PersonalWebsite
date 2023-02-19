@@ -3,13 +3,18 @@
 let canvas;
 let gl;
 let adsShader;
+let shadowShader;
+
 let projectionMatrix;
 let viewMatrix;
 
 let models = [];
 let directionalLight = {
-    direction: new Float32Array([0.249136, 0.830454, 0.498272, 0.0]),
-    color: new Float32Array([1.0, 1.0, 1.0])
+    direction: new Float32Array([0.249136, 0.830454, 0.498272]),
+    color: new Float32Array([1.0, 1.0, 1.0]),
+    shadowMap: null,
+    shadowRes: 1024,
+    viewMatrix: glMatrix.mat4.create()
 }
 
 let lastTimeStamp;
@@ -21,7 +26,7 @@ let lastTimeStamp;
  * @param src
  * @returns {WebGLShader|null}
  */
-function loadShader(type, src)
+function compileShader(type, src)
 {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, src);
@@ -45,8 +50,8 @@ function loadShader(type, src)
  */
 function loadShaderProgram(vertSrc, fragSrc)
 {
-    const vertShader = loadShader(gl.VERTEX_SHADER, vertSrc);
-    const fragShader = loadShader(gl.FRAGMENT_SHADER, fragSrc);
+    const vertShader = compileShader(gl.VERTEX_SHADER, vertSrc);
+    const fragShader = compileShader(gl.FRAGMENT_SHADER, fragSrc);
 
     if (vertShader === null || fragShader === null)
     {
@@ -70,6 +75,25 @@ function loadShaderProgram(vertSrc, fragSrc)
     }
 
     return program;
+}
+
+async function loadRemoteShaderProgram(vertUrl, fragUrl)
+{
+    //Load shader source
+    const vertexResponse = await fetch(vertUrl);
+    const fragmentResponse = await fetch(fragUrl);
+
+    if(!vertexResponse.ok || !fragmentResponse.ok)
+    {
+        fallbackRedirect();
+        return;
+    }
+
+    const vertexText = await vertexResponse.text();
+    const fragmentText = await fragmentResponse.text();
+
+    //Compile shader
+    return loadShaderProgram(vertexText, fragmentText);
 }
 
 /**
@@ -105,14 +129,30 @@ function render(timeStamp)
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -3.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
-    gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
+    gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, directionalLight.viewMatrix);
+
+    gl.useProgram(adsShader.program);
+
+    gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexNormal);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexTangent);
+    gl.enableVertexAttribArray(adsShader.attributes.vertexBitangent);
 
     for(const model of models) {
-        drawModel(model, viewMatrix, adsShader, gl);
+        drawModel(model, directionalLight.viewMatrix, adsShader, gl);
     }
+
+    gl.disableVertexAttribArray(adsShader.attributes.vertexPosition);
+    gl.disableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
+    gl.disableVertexAttribArray(adsShader.attributes.vertexNormal);
+    gl.disableVertexAttribArray(adsShader.attributes.vertexTangent);
+    gl.disableVertexAttribArray(adsShader.attributes.vertexBitangent);
 
     window.requestAnimationFrame(render)
 }
+
+
 
 async function main()
 {
@@ -121,7 +161,8 @@ async function main()
 
     //Get the GL context
     if(gl === null) gl = canvas.getContext("webgl");
-    if(gl === null){
+    if(gl === null)
+    {
         fallbackRedirect();
         return;
     }
@@ -139,21 +180,8 @@ async function main()
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
-    //Load shader source
-    const vertexResponse = await fetch('shaders/model.v');
-    const fragmentResponse = await fetch('shaders/ads.f');
-
-    if(!vertexResponse.ok || !fragmentResponse.ok)
-    {
-        fallbackRedirect();
-        return;
-    }
-
-    const vertexText = await vertexResponse.text();
-    const fragmentText = await fragmentResponse.text();
-
     //Compile shader
-    const adsProgram = loadShaderProgram(vertexText, fragmentText);
+    const adsProgram = await loadRemoteShaderProgram('shaders/model.v', 'shaders/ads.f');
 
     if(adsProgram === null)
     {
@@ -186,11 +214,24 @@ async function main()
         }
     }
 
-    gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
-    gl.enableVertexAttribArray(adsShader.attributes.vertexTextureCoord);
-    gl.enableVertexAttribArray(adsShader.attributes.vertexNormal);
-    gl.enableVertexAttribArray(adsShader.attributes.vertexTangent);
-    gl.enableVertexAttribArray(adsShader.attributes.vertexBitangent);
+    const shadowProgram = await loadRemoteShaderProgram("shaders/shadow.v", "shaders/shadow.f");
+
+    if(shadowProgram === null)
+    {
+        fallbackRedirect();
+        return;
+    }
+
+    shadowShader = {
+        program: shadowProgram,
+        attributes: {
+            vertexPosition: gl.getAttribLocation(shadowProgram, "aPosition")
+        },
+        uniforms: {
+            modelViewMatrix: gl.getUniformLocation(shadowProgram, "uModelViewMatrix"),
+            projectionMatrix: gl.getUniformLocation(shadowProgram, "uProjectionMatrix")
+        }
+    }
 
     gl.useProgram(adsShader.program);
 
@@ -211,7 +252,11 @@ async function main()
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
 
-    gl.uniform4fv(adsShader.uniforms.sunDirection, directionalLight.direction);
+    let lightLookDir = glMatrix.vec3.create();
+    glMatrix.vec3.multiply(lightLookDir, directionalLight.direction, [5,5,5]);
+    glMatrix.mat4.lookAt(directionalLight.viewMatrix, lightLookDir, [0,0,0], [0,1,0]);
+
+    gl.uniform3fv(adsShader.uniforms.sunDirection, directionalLight.direction);
     gl.uniform3fv(adsShader.uniforms.sunColor, directionalLight.color);
 
     lastTimeStamp = performance.now();
