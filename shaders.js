@@ -98,6 +98,7 @@ class Shader
         //Compile shader
         return this.LoadShaderProgram(vertexText, fragmentText);
     }
+
 }
 
 class ADSShader extends Shader
@@ -243,5 +244,28 @@ class ShadowShader extends Shader
     StopUsing()
     {
         this.gl.disableVertexAttribArray(adsShader.attributes.vertexPosition);
+    }
+
+    /**
+     * Draw the given model using this shader program.
+     * Make sure this is the current active program (by calling Use()) before trying to draw
+     */
+    DrawModel(model, viewMatrix)
+    {
+        const gl = this.gl;
+
+        //Set attribute pointers
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.dataBuffer);
+        gl.vertexAttribPointer(this.attributes.vertexPosition, 3, gl.FLOAT, false, model.stride, model.posOffset);
+
+        //Multiply the model's transform and the view matrix
+        let modelViewMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
+        glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, model.transformMatrix);
+
+        gl.uniformMatrix4fv(this.uniforms.modelViewMatrix, false, modelViewMatrix);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
+        gl.drawElements(gl.TRIANGLES, model.indicesCount, gl.UNSIGNED_SHORT, 0);
     }
 }

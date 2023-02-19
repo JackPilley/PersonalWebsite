@@ -44,6 +44,7 @@ function render(timeStamp)
         gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, projectionMatrix);
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
 
     //glMatrix.mat4.rotateX(model.transformMatrix, model.transformMatrix, 0.001 * delta);
 
@@ -52,12 +53,12 @@ function render(timeStamp)
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -3.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
-    gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, directionalLight.viewMatrix);
+    gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
     adsShader.Use();
 
     for(const model of models) {
-        adsShader.DrawModel(model, directionalLight.viewMatrix);
+        adsShader.DrawModel(model, viewMatrix);
     }
 
     adsShader.StopUsing();
