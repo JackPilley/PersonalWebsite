@@ -61,5 +61,6 @@ void main()
 
     //finalColor = ACESFilm(finalColor);
 
-    FragColor = vec4(pow(finalColor, vec3(1.0/2.2)), diffuseSample.a);
+    //FragColor = vec4(pow(finalColor, vec3(1.0/2.2)), diffuseSample.a);
+    FragColor = vec4(finalColor, diffuseSample.a);
 }

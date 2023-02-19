@@ -1,10 +1,16 @@
+"use strict";
+
 let canvas;
 let gl;
 let adsShader;
 let projectionMatrix;
 let viewMatrix;
 
-let model;
+let models = [];
+let directionalLight = {
+    direction: new Float32Array([0.249136, 0.830454, 0.498272, 0.0]),
+    color: new Float32Array([1.0, 1.0, 1.0])
+}
 
 let lastTimeStamp;
 
@@ -95,14 +101,15 @@ function render(timeStamp)
     //glMatrix.mat4.rotateX(model.transformMatrix, model.transformMatrix, 0.001 * delta);
 
     viewMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
+    glMatrix.mat4.rotateX(viewMatrix, viewMatrix, 0.5);
+    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -3.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
-
-    glMatrix.mat4.rotateZ(model.transformMatrix, model.transformMatrix, 0.001 * delta);
 
     gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
-    drawModel(model, viewMatrix, adsShader, gl);
+    for(const model of models) {
+        drawModel(model, viewMatrix, adsShader, gl);
+    }
 
     window.requestAnimationFrame(render)
 }
@@ -187,7 +194,11 @@ async function main()
 
     gl.useProgram(adsShader.program);
 
-    model = await loadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    let model = await loadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    models.push(model);
+    model = await loadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    glMatrix.mat4.translate(model.transformMatrix, model.transformMatrix, [0,-0.5,0]);
+    models.push(model);
 
     projectionMatrix = glMatrix.mat4.create();
     glMatrix.mat4.perspective(projectionMatrix,
@@ -200,8 +211,8 @@ async function main()
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
 
-    gl.uniform4fv(adsShader.uniforms.sunDirection, new Float32Array([0.249136, 0.830454, 0.498272, 0.0]));
-    gl.uniform3fv(adsShader.uniforms.sunColor, new Float32Array([1.0, 1.0, 1.0]));
+    gl.uniform4fv(adsShader.uniforms.sunDirection, directionalLight.direction);
+    gl.uniform3fv(adsShader.uniforms.sunColor, directionalLight.color);
 
     lastTimeStamp = performance.now();
 
