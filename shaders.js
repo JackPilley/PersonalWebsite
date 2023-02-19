@@ -129,6 +129,11 @@ class ADSShader extends Shader
         };
     }
 
+    /**
+     * Set the context state to be what the program requires:
+     * - Sets this program to be the current active program
+     * - Enables vertex attribute arrays
+     */
     Use()
     {
         this.gl.useProgram(this.program);
@@ -139,6 +144,9 @@ class ADSShader extends Shader
         this.gl.enableVertexAttribArray(adsShader.attributes.vertexTangent);
     }
 
+    /**
+     * Disables the vertex attribute arrays used by this shader
+     */
     StopUsing()
     {
         this.gl.disableVertexAttribArray(adsShader.attributes.vertexBitangent);
@@ -148,6 +156,58 @@ class ADSShader extends Shader
         this.gl.disableVertexAttribArray(adsShader.attributes.vertexTangent);
     }
 
+    /**
+     * Draw the given model using this shader program.
+     * Make sure this is the current active program (by calling Use()) before trying to draw
+     */
+    DrawModel(model, viewMatrix)
+    {
+        const gl = this.gl;
+
+        //Set attribute pointers
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.dataBuffer);
+        gl.vertexAttribPointer(this.attributes.vertexPosition, 3, gl.FLOAT, false, model.stride, model.posOffset);
+
+        gl.vertexAttribPointer(this.attributes.vertexTextureCoord, 2, gl.FLOAT, false, model.stride, model.texOffset);
+
+        gl.vertexAttribPointer(this.attributes.vertexNormal, 3, gl.FLOAT, false, model.stride, model.normOffset);
+
+        gl.vertexAttribPointer(this.attributes.vertexTangent, 3, gl.FLOAT, false, model.stride, model.tangentOffset);
+
+        gl.vertexAttribPointer(this.attributes.vertexBitangent, 3, gl.FLOAT, false, model.stride, model.bitangentOffset);
+
+        //Set diffuse texture
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, model.diffuseTexture);
+        gl.uniform1i(this.uniforms.diffuseTexture, 0);
+
+        //Set specular texture
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, model.specularTexture);
+        gl.uniform1i(this.uniforms.specularTexture, 1);
+
+        //Set normal texture
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, model.normalTexture);
+        gl.uniform1i(this.uniforms.normalTexture, 2);
+
+        gl.uniform1f(this.uniforms.ambientFactor, 0.1);
+
+        //Multiply the model's transform and the view matrix
+        let modelViewMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, viewMatrix);
+        glMatrix.mat4.multiply(modelViewMatrix, modelViewMatrix, model.transformMatrix);
+
+        //Use the model view matrix to generate the normal transform matrix
+        let normalMatrix = glMatrix.mat3.create();
+        glMatrix.mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+
+        gl.uniformMatrix4fv(this.uniforms.modelViewMatrix, false, modelViewMatrix);
+        gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
+        gl.drawElements(gl.TRIANGLES, model.indicesCount, gl.UNSIGNED_SHORT, 0);
+    }
 }
 
 class ShadowShader extends Shader
@@ -166,12 +226,20 @@ class ShadowShader extends Shader
         };
     }
 
+    /**
+     * Set the context state to be what the program requires:
+     * - Sets this program to be the current active program
+     * - Enables vertex attribute arrays
+     */
     Use()
     {
         this.gl.useProgram(this.program);
         this.gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
     }
 
+    /**
+     * Disables the vertex attribute arrays used by this shader
+     */
     StopUsing()
     {
         this.gl.disableVertexAttribArray(adsShader.attributes.vertexPosition);

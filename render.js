@@ -57,7 +57,7 @@ function render(timeStamp)
     adsShader.Use();
 
     for(const model of models) {
-        drawModel(model, directionalLight.viewMatrix, adsShader, gl);
+        adsShader.DrawModel(model, directionalLight.viewMatrix);
     }
 
     adsShader.StopUsing();
@@ -104,13 +104,7 @@ async function main()
         return;
     }
 
-    gl.useProgram(adsShader.program);
-
-    /*let model = await loadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
-    models.push(model);
-    model = await loadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
-    glMatrix.mat4.translate(model.transformMatrix, model.transformMatrix, [0,-0.5,0]);
-    models.push(model);*/
+    adsShader.Use();
 
     let sphere = new Model();
     await sphere.LoadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
