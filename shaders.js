@@ -7,11 +7,13 @@ class Shader
     program;
     attributes;
     uniforms;
+    projectionMatrix;
     gl;
 
-    constructor(glContext)
+    constructor(glContext, projectionMatrix)
     {
         this.gl = glContext;
+        this.projectionMatrix = projectionMatrix;
     }
 
     /**
@@ -128,6 +130,9 @@ class ADSShader extends Shader
             sunDirection: this.gl.getUniformLocation(this.program, "uSunDirection"),
             sunColor: this.gl.getUniformLocation(this.program, "uSunColor")
         };
+
+        this.gl.useProgram(this.program);
+        this.gl.uniformMatrix4fv(this.uniforms.projectionMatrix, false, this.projectionMatrix);
     }
 
     /**
@@ -225,6 +230,10 @@ class ShadowShader extends Shader
             modelViewMatrix: this.gl.getUniformLocation(this.program, "uModelViewMatrix"),
             projectionMatrix: this.gl.getUniformLocation(this.program, "uProjectionMatrix")
         };
+
+        this.gl.useProgram(this.program);
+
+        this.gl.uniformMatrix4fv(this.uniforms.projectionMatrix, false, this.projectionMatrix);
     }
 
     /**
@@ -235,7 +244,7 @@ class ShadowShader extends Shader
     Use()
     {
         this.gl.useProgram(this.program);
-        this.gl.enableVertexAttribArray(adsShader.attributes.vertexPosition);
+        this.gl.enableVertexAttribArray(this.attributes.vertexPosition);
     }
 
     /**
@@ -243,7 +252,7 @@ class ShadowShader extends Shader
      */
     StopUsing()
     {
-        this.gl.disableVertexAttribArray(adsShader.attributes.vertexPosition);
+        this.gl.disableVertexAttribArray(this.attributes.vertexPosition);
     }
 
     /**

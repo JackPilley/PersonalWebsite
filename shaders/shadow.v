@@ -10,4 +10,5 @@ out vec4 vPosition;
 
 void main() {
     vPosition = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0f);
+    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0f);
 }
