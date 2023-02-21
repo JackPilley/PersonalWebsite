@@ -34,12 +34,27 @@ float ShadowDetermination(vec4 fragLightPos)
 {
     vec3 projectedCoord = fragLightPos.xyz/fragLightPos.w;
 
+    if(projectedCoord.z > 1.0) return 0.0;
+
     projectedCoord = projectedCoord/2.0 + 0.5;
 
-    float shadowDepth = texture(uShadowMap, projectedCoord.xy).r;
-    float currentDepth = projectedCoord.z;
+    float shadow = 0.0;
 
-    float shadow = currentDepth-0.005 > shadowDepth ? 1.0 : 0.0;
+    vec2 texelSize = vec2(1.0) / vec2(textureSize(uShadowMap, 0));
+
+    float currentDepth = projectedCoord.z + 0.01;
+
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,-1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,-1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,-1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,0.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,0.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,0.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,1.0) * texelSize).r ? 1.0 : 0.0;
+
+    shadow /= 9.0;
 
     return shadow;
 }
@@ -71,13 +86,11 @@ void main()
         specular = pow(specularDot, gloss);
     }
 
-    float shadow = ShadowDetermination(vLightRelativePosition);
+    float shadow = 1.0 - ShadowDetermination(vLightRelativePosition);
 
     //Diffuse and ambient lighting are based on the diffuse texture, specular lighting is based on the
     //specular texture
-    vec3 finalColor = (diffuse + ambient) * diffuseSample.xyz + specular * specularSample.xyz;
-
-    finalColor = vec3(1.0-shadow);
+    vec3 finalColor = (diffuse * shadow + ambient) * diffuseSample.xyz + specular * shadow * specularSample.xyz;
 
     //finalColor = ACESFilm(finalColor);
 

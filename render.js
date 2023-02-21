@@ -49,7 +49,7 @@ function render(timeStamp)
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
     ShadowPass();
-    //ADSPass();
+    ADSPass();
 
     window.requestAnimationFrame(render)
 }
@@ -58,7 +58,10 @@ function ShadowPass()
 {
     shadowShader.Use();
 
-    //gl.bindFramebuffer(gl.FRAMEBUFFER, shadowShader.frameBuffer);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowShader.frameBuffer);
     gl.viewport(0,0,shadowShader.resolution,shadowShader.resolution);
 
     gl.uniformMatrix4fv(shadowShader.uniforms.viewMatrix, false, directionalLight.viewMatrix);
@@ -73,6 +76,9 @@ function ShadowPass()
 function ADSPass()
 {
     adsShader.Use();
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
@@ -146,7 +152,7 @@ async function main()
 
     let sphere = new Model();
     await sphere.LoadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
-    glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,0,0]);
+    glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,1,0]);
     let ground = new Model();
     await ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
     glMatrix.mat4.scale(ground.transformMatrix, ground.transformMatrix, [3,1,3]);

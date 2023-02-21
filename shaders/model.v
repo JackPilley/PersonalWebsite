@@ -12,7 +12,8 @@ out vec2 vTextureCoord;
 out mat3 vTBN;
 out vec4 vLightRelativePosition;
 
-uniform mat4 uModelViewMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
 uniform mat3 uNormalMatrix;
 uniform mat4 uProjectionMatrix;
 
@@ -20,14 +21,14 @@ uniform mat4 uLightMatrix;
 
 void main()
 {
-    vPosition = (uModelViewMatrix * vec4(aPosition, 1.0f)).xyz;
+    vPosition = (uViewMatrix * uModelMatrix * vec4(aPosition, 1.0f)).xyz;
     vTextureCoord = aTextureCoord;
-    vLightRelativePosition = uLightMatrix * vec4(aPosition, 1.0f);
+    vLightRelativePosition = uLightMatrix * uModelMatrix * vec4(aPosition, 1.0f);
 
     vec3 tangent = normalize(uNormalMatrix * aTangent);
     vec3 bitanget = normalize(uNormalMatrix * aBitanget);
     vec3 normal = normalize(uNormalMatrix * aNormal);
     vTBN = mat3(tangent, bitanget, normal);
 
-    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0f);
+    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0f);
 }

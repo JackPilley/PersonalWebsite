@@ -119,7 +119,7 @@ class ADSShader extends Shader
         };
 
         this.uniforms = {
-            modelViewMatrix: this.gl.getUniformLocation(this.program, "uModelViewMatrix"),
+            modelMatrix: this.gl.getUniformLocation(this.program, "uModelMatrix"),
             viewMatrix: this.gl.getUniformLocation(this.program, "uViewMatrix"),
             normalMatrix: this.gl.getUniformLocation(this.program, "uNormalMatrix"),
             projectionMatrix: this.gl.getUniformLocation(this.program, "uProjectionMatrix"),
@@ -210,9 +210,7 @@ class ADSShader extends Shader
         let normalMatrix = glMatrix.mat3.create();
         glMatrix.mat3.normalFromMat4(normalMatrix, modelViewMatrix);
 
-        glMatrix.mat4.multiply(lightMatrix, lightMatrix, model.transformMatrix);
-
-        gl.uniformMatrix4fv(this.uniforms.modelViewMatrix, false, modelViewMatrix);
+        gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, model.transformMatrix);
         gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
         gl.uniformMatrix4fv(this.uniforms.lightMatrix, false, lightMatrix);
 
