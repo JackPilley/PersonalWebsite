@@ -4,6 +4,7 @@ precision mediump float;
 in vec3 vPosition;
 in vec2 vTextureCoord;
 in mat3 vTBN;
+in vec4 vLightRelativePosition;
 
 uniform sampler2D uDiffuseTexture;
 uniform sampler2D uSpecularTexture;
@@ -14,6 +15,7 @@ uniform mat4 uViewMatrix;
 
 uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
+uniform sampler2D uShadowMap;
 
 layout(location = 0) out vec4 FragColor;
 
@@ -26,6 +28,20 @@ vec3 ACESFilm(vec3 x)
     float d = 0.59f;
     float e = 0.14f;
     return clamp((x*(a*x+b))/(x*(c*x+d)+e), vec3(0.0), vec3(1.0));
+}
+
+float ShadowDetermination(vec4 fragLightPos)
+{
+    vec3 projectedCoord = fragLightPos.xyz/fragLightPos.w;
+
+    projectedCoord = projectedCoord/2.0 + 0.5;
+
+    float shadowDepth = texture(uShadowMap, projectedCoord.xy).r;
+    float currentDepth = projectedCoord.z;
+
+    float shadow = currentDepth-0.005 > shadowDepth ? 1.0 : 0.0;
+
+    return shadow;
 }
 
 void main()
@@ -55,9 +71,13 @@ void main()
         specular = pow(specularDot, gloss);
     }
 
+    float shadow = ShadowDetermination(vLightRelativePosition);
+
     //Diffuse and ambient lighting are based on the diffuse texture, specular lighting is based on the
     //specular texture
     vec3 finalColor = (diffuse + ambient) * diffuseSample.xyz + specular * specularSample.xyz;
+
+    finalColor = vec3(1.0-shadow);
 
     //finalColor = ACESFilm(finalColor);
 

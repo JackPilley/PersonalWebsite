@@ -128,7 +128,9 @@ class ADSShader extends Shader
             normalTexture: this.gl.getUniformLocation(this.program, "uNormalTexture"),
             ambientFactor: this.gl.getUniformLocation(this.program, "uAmbientFactor"),
             sunDirection: this.gl.getUniformLocation(this.program, "uSunDirection"),
-            sunColor: this.gl.getUniformLocation(this.program, "uSunColor")
+            sunColor: this.gl.getUniformLocation(this.program, "uSunColor"),
+            lightMatrix: this.gl.getUniformLocation(this.program, "uLightMatrix"),
+            shadowMap: this.gl.getUniformLocation(this.program, "uShadowMap")
         };
 
         this.gl.useProgram(this.program);
@@ -166,7 +168,7 @@ class ADSShader extends Shader
      * Draw the given model using this shader program.
      * Make sure this is the current active program (by calling Use()) before trying to draw
      */
-    DrawModel(model, viewMatrix)
+    DrawModel(model, viewMatrix, lightMatrix)
     {
         const gl = this.gl;
 
@@ -208,8 +210,11 @@ class ADSShader extends Shader
         let normalMatrix = glMatrix.mat3.create();
         glMatrix.mat3.normalFromMat4(normalMatrix, modelViewMatrix);
 
+        glMatrix.mat4.multiply(lightMatrix, lightMatrix, model.transformMatrix);
+
         gl.uniformMatrix4fv(this.uniforms.modelViewMatrix, false, modelViewMatrix);
         gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+        gl.uniformMatrix4fv(this.uniforms.lightMatrix, false, lightMatrix);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
         gl.drawElements(gl.TRIANGLES, model.indicesCount, gl.UNSIGNED_SHORT, 0);
@@ -218,6 +223,31 @@ class ADSShader extends Shader
 
 class ShadowShader extends Shader
 {
+    shadowMap;
+    resolution;
+    frameBuffer;
+
+    constructor (glContext, projectionMatrix, resolution)
+    {
+        super(glContext, projectionMatrix);
+
+        this.shadowMap = this.gl.createTexture();
+        this.resolution = resolution;
+        this.gl.bindTexture(gl.TEXTURE_2D, this.shadowMap);
+
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.DEPTH_COMPONENT24, this.resolution, this.resolution, 0, this.gl.DEPTH_COMPONENT, this.gl.UNSIGNED_INT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        this.frameBuffer = gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffer);
+        this.gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.shadowMap, 0);
+
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
+
     async InitializeFromURL(vertUrl, fragUrl)
     {
         this.program = await this.LoadRemoteShaderProgram(vertUrl, fragUrl);
