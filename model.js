@@ -89,7 +89,7 @@ class Model
         let vertexMap = new Map();
 
         const modelResponse = await fetch(modelURL);
-        if(!modelResponse.ok) return null;
+        if(!modelResponse.ok) return false;
 
         const modelText = await modelResponse.text();
 
@@ -251,6 +251,8 @@ class Model
         this.normOffset = verticesF32.BYTES_PER_ELEMENT * 5;
         this.tangentOffset = verticesF32.BYTES_PER_ELEMENT * 8;
         this.bitangentOffset = verticesF32.BYTES_PER_ELEMENT * 11;
+
+        return true;
     }
 
 }

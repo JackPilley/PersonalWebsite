@@ -99,7 +99,6 @@ function ADSPass()
     adsShader.StopUsing();
 }
 
-
 async function main()
 {
     canvas = document.querySelector("#canvas");
@@ -125,36 +124,29 @@ async function main()
     gl.cullFace(gl.BACK);
 
     let perspectiveProjMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.perspective(perspectiveProjMatrix,
-        75*Math.PI/180,
-        gl.canvas.clientWidth/gl.canvas.clientHeight,
-        0.1, 100);
-
-    //Find attribute and uniform locations
-    adsShader = new ADSShader(gl, perspectiveProjMatrix);
-    if(await adsShader.InitializeFromURL('shaders/model.v', 'shaders/ads.f') === null)
-    {
-        fallbackRedirect();
-        return;
-    }
+    glMatrix.mat4.perspective(perspectiveProjMatrix, 75*Math.PI/180, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100);
 
     let orthoProjMatrix = glMatrix.mat4.create();
     glMatrix.mat4.ortho(orthoProjMatrix, -5, 5, -5, 5, 0.1, 10);
 
+    adsShader = new ADSShader(gl, perspectiveProjMatrix);
     shadowShader = new ShadowShader(gl, orthoProjMatrix, 1024);
-    if(await shadowShader.InitializeFromURL("shaders/shadow.v", "shaders/shadow.f") === null)
+    let sphere = new Model();
+    let ground = new Model();
+
+    //Request all resources at once then await the results
+    let adsInitResult = adsShader.InitializeFromURL('shaders/model.v', 'shaders/ads.f');
+    let shadowInitResult = shadowShader.InitializeFromURL("shaders/shadow.v", "shaders/shadow.f");
+    let spherePromise = sphere.LoadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    let groundPromise = ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+
+    if(await adsInitResult === null || await shadowInitResult === null || !await spherePromise || !await groundPromise)
     {
         fallbackRedirect();
         return;
     }
 
-    adsShader.Use();
-
-    let sphere = new Model();
-    await sphere.LoadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
     glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,1,0]);
-    let ground = new Model();
-    await ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
     glMatrix.mat4.scale(ground.transformMatrix, ground.transformMatrix, [3,1,3]);
 
     models.push(sphere, ground);
@@ -167,12 +159,14 @@ async function main()
 
     directionalLight = new DirectionalLight(lightDir, [1.0, 1.0, 1.0]);
 
+    adsShader.Use();
+
     gl.uniform3fv(adsShader.uniforms.sunDirection, directionalLight.direction);
     gl.uniform3fv(adsShader.uniforms.sunColor, directionalLight.color);
 
-    lastTimeStamp = performance.now();
-
     adsShader.StopUsing();
+
+    lastTimeStamp = performance.now();
 
     render(0);
 }
