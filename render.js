@@ -45,7 +45,7 @@ function render(timeStamp)
 
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.rotateX(viewMatrix, viewMatrix, 0.5);
-    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -3.0]);
+    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -6.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
     ShadowPass();
@@ -155,7 +155,7 @@ async function main()
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
 
     let lightDir = glMatrix.vec3.create();
-    glMatrix.vec3.normalize(lightDir, [0.7, 0.3, 0.0]);
+    glMatrix.vec3.normalize(lightDir, [0.7, 0.3, 0.3]);
 
     directionalLight = new DirectionalLight(lightDir, [1.0, 1.0, 1.0]);
 

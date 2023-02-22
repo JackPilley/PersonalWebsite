@@ -30,29 +30,38 @@ vec3 ACESFilm(vec3 x)
     return clamp((x*(a*x+b))/(x*(c*x+d)+e), vec3(0.0), vec3(1.0));
 }
 
+float SampleShadowMap(vec2 point)
+{
+    if (point.x >= 1.0 || point.x <= 0.0 || point.y >= 1.0 || point.y <= 0.0)
+    {
+        return 1.0;
+    }
+
+    return texture(uShadowMap, point).r;
+}
+
 float ShadowDetermination(vec4 fragLightPos)
 {
     vec3 projectedCoord = fragLightPos.xyz/fragLightPos.w;
 
-    if(projectedCoord.z > 1.0) return 0.0;
-
     projectedCoord = projectedCoord/2.0 + 0.5;
+    float currentDepth = projectedCoord.z + 0.01;
+
+    if(currentDepth >= 1.0) return 0.0;
 
     float shadow = 0.0;
 
     vec2 texelSize = vec2(1.0) / vec2(textureSize(uShadowMap, 0));
 
-    float currentDepth = projectedCoord.z + 0.01;
-
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,-1.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,-1.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,-1.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,0.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,0.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,0.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(-1.0,1.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(0.0,1.0) * texelSize).r ? 1.0 : 0.0;
-    shadow += currentDepth > texture(uShadowMap, projectedCoord.xy + vec2(1.0,1.0) * texelSize).r ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(-1.0,-1.0) * texelSize) ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(0.0,-1.0) * texelSize)  ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(1.0,-1.0) * texelSize)  ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(-1.0,0.0) * texelSize)  ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(0.0,0.0) * texelSize)   ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(1.0,0.0) * texelSize)   ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(-1.0,1.0) * texelSize)  ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(0.0,1.0) * texelSize)   ? 1.0 : 0.0;
+    shadow += currentDepth > SampleShadowMap(projectedCoord.xy + vec2(1.0,1.0) * texelSize)   ? 1.0 : 0.0;
 
     shadow /= 9.0;
 
