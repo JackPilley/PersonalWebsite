@@ -197,7 +197,7 @@ class ADSShader extends Shader
         gl.bindTexture(gl.TEXTURE_2D, model.normalTexture);
         gl.uniform1i(this.uniforms.normalTexture, 2);
 
-        gl.uniform1f(this.uniforms.ambientFactor, 0.3);
+        gl.uniform1f(this.uniforms.ambientFactor, 0.5);
 
         //Multiply the model's transform and the view matrix
         let modelViewMatrix = glMatrix.mat4.create();

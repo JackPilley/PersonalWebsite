@@ -31,7 +31,7 @@ function render(timeStamp)
         gl.canvas.height = gl.canvas.clientHeight;
         gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
         glMatrix.mat4.perspective(adsShader.projectionMatrix,
-            80*Math.PI/180,
+            45*Math.PI/180,
             gl.canvas.clientWidth/gl.canvas.clientHeight,
             0.1, 100);
         adsShader.Use();
@@ -124,7 +124,7 @@ async function main()
     gl.cullFace(gl.BACK);
 
     let perspectiveProjMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.perspective(perspectiveProjMatrix, 50*Math.PI/180, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100);
+    glMatrix.mat4.perspective(perspectiveProjMatrix, 45*Math.PI/180, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100);
 
     let orthoProjMatrix = glMatrix.mat4.create();
     glMatrix.mat4.ortho(orthoProjMatrix, -5, 5, -5, 5, 0.1, 10);
@@ -162,7 +162,7 @@ async function main()
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
 
     let lightDir = glMatrix.vec3.create();
-    glMatrix.vec3.normalize(lightDir, [0.3, 0.6, 0.3]);
+    glMatrix.vec3.normalize(lightDir, [0.3, 0.4, 0.3]);
 
     directionalLight = new DirectionalLight(lightDir, [1.0, 1.0, 1.0]);
 
