@@ -45,7 +45,7 @@ float ShadowDetermination(vec4 fragLightPos)
     vec3 projectedCoord = fragLightPos.xyz/fragLightPos.w;
 
     projectedCoord = projectedCoord/2.0 + 0.5;
-    float currentDepth = projectedCoord.z + 0.01;
+    float currentDepth = projectedCoord.z + 0.001;
 
     if(currentDepth >= 1.0) return 0.0;
 

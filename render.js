@@ -45,7 +45,7 @@ function render(timeStamp)
 
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.rotateX(viewMatrix, viewMatrix, 0.5);
-    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -6.0]);
+    glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, -2.0, -4.0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
     ShadowPass();
@@ -124,7 +124,7 @@ async function main()
     gl.cullFace(gl.BACK);
 
     let perspectiveProjMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.perspective(perspectiveProjMatrix, 75*Math.PI/180, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100);
+    glMatrix.mat4.perspective(perspectiveProjMatrix, 50*Math.PI/180, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100);
 
     let orthoProjMatrix = glMatrix.mat4.create();
     glMatrix.mat4.ortho(orthoProjMatrix, -5, 5, -5, 5, 0.1, 10);
@@ -132,30 +132,37 @@ async function main()
     adsShader = new ADSShader(gl, perspectiveProjMatrix);
     shadowShader = new ShadowShader(gl, orthoProjMatrix, 1024);
     let sphere = new Model();
-    let ground = new Model();
+    //let ground = new Model();
+    let island = new Model();
 
     //Request all resources at once then await the results
     let adsInitResult = adsShader.InitializeFromURL('shaders/model.v', 'shaders/ads.f');
     let shadowInitResult = shadowShader.InitializeFromURL("shaders/shadow.v", "shaders/shadow.f");
     let spherePromise = sphere.LoadModel("models/uv_sphere.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
-    let groundPromise = ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
+    //let groundPromise = ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
 
-    if(await adsInitResult === null || await shadowInitResult === null || !await spherePromise || !await groundPromise)
+    let islandPromise = island.LoadModel("models/floating_island.obj", "textures/island_diffuse.png", "textures/island_spec.png", "textures/island_norm.png", gl);
+
+    if(await adsInitResult === null || await shadowInitResult === null || !await islandPromise || !await spherePromise)
     {
         fallbackRedirect();
         return;
     }
 
-    glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,1,0]);
-    glMatrix.mat4.scale(ground.transformMatrix, ground.transformMatrix, [3,1,3]);
+    //glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,1,0]);
+    //glMatrix.mat4.scale(ground.transformMatrix, ground.transformMatrix, [3,1,3]);
 
-    models.push(sphere, ground);
+    glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0, 0.75, 0]);
+    glMatrix.mat4.scale(sphere.transformMatrix, sphere.transformMatrix, [0.3, 0.3, 0.3]);
+
+    models.push(sphere);
+    models.push(island);
 
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -3.0]);
 
     let lightDir = glMatrix.vec3.create();
-    glMatrix.vec3.normalize(lightDir, [0.7, 0.3, 0.3]);
+    glMatrix.vec3.normalize(lightDir, [0.3, 0.6, 0.3]);
 
     directionalLight = new DirectionalLight(lightDir, [1.0, 1.0, 1.0]);
 
