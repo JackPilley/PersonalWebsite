@@ -1,0 +1,134 @@
+*{
+    scroll-behavior: smooth;
+}
+canvas{
+    z-index: -1;
+    position: fixed;
+    top:0;
+    left:0;
+    width: 100vw;
+    height: 100vh;
+}
+body{
+    background: #101010;
+    margin: 0;
+}
+h1 {
+    font-family: sans-serif;
+    color: white;
+    margin: 0 10% 0 0;
+    font-size: 4rem;
+}
+h2{
+    font-family: sans-serif;
+    color: white;
+    font-size: 2rem;
+}
+p, ul{
+    font-family: sans-serif;
+    color: white;
+    font-size: 1.5rem;
+}
+li {
+    padding-bottom: 0.3em;
+}
+#wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+}
+#wrapper > section{
+    flex-basis: 100%;
+}
+
+#name-and-links{
+    display: flex;
+    min-height: 100vh;
+    align-content: center;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#name-and-links > article {
+    background-image: linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+    padding: 20px 10vw;
+}
+
+#portfolio {
+    background-image: linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+    padding-left: 10vw;
+    padding-right: 10vw;
+    padding-top: 20px;
+}
+a{
+    color: orange;
+    text-decoration: none;
+}
+a:hover{
+    text-decoration: underline;
+}
+
+@keyframes prompt-slide {
+    from {
+        transform: translateY(-10px);
+    }
+
+    to {
+        transform: translateY(20px);
+    }
+}
+
+#portfolio-prompt {
+    align-self: center;
+    margin-top: 15px;
+    position: relative;
+    width: 50px;
+}
+#portfolio-prompt > img {
+    position: absolute;
+    animation-name: prompt-slide;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    width: 50px;
+    height: 50px;
+}
+
+#portfolio-container{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    column-gap: 2rem;
+    row-gap: 2rem;
+}
+.portfolio-item{
+    flex-basis: 32%;
+    flex-grow: 1;
+    border-bottom-style: solid;
+    border-width: 2px;
+    border-image: linear-gradient(90deg, rgba(50,80,120,0.7), rgba(0,0,104, 0)) 1;
+}
+.portfolio-item > p {
+    padding-left: 1rem;
+}
+
+@media only screen and (max-width: 900px) {
+    .portfolio-item{
+        flex-basis: 100%;
+    }
+    .portfolio-item > p {
+        padding-left: 0;
+    }
+
+    #name-and-links > article {
+        padding: 20px 5vw;
+    }
+
+    #portfolio {
+        padding-left: 5vw;
+        padding-right: 5vw;
+        padding-top: 20px;
+    }
+}
