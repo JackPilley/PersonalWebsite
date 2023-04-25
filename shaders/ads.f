@@ -17,6 +17,8 @@ uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
 uniform sampler2D uShadowMap;
 
+uniform bool uUseShadows;
+
 layout(location = 0) out vec4 FragColor;
 
 //https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
@@ -95,14 +97,15 @@ void main()
         specular = pow(specularDot, gloss);
     }
 
-    float shadow = 1.0 - ShadowDetermination(vLightRelativePosition);
+    float shadow = 1.0;
+    if(uUseShadows)
+        shadow = 1.0 - ShadowDetermination(vLightRelativePosition);
 
     //Diffuse and ambient lighting are based on the diffuse texture, specular lighting is based on the
     //specular texture
     vec3 finalColor = (diffuse * shadow + ambient) * diffuseSample.xyz + specular * shadow * specularSample.xyz;
 
-    //finalColor = ACESFilm(finalColor);
+    vec3 projectedCoord = vLightRelativePosition.xyz/vLightRelativePosition.w;
 
-    //FragColor = vec4(pow(finalColor, vec3(1.0/2.2)), diffuseSample.a);
     FragColor = vec4(finalColor, diffuseSample.a);
 }

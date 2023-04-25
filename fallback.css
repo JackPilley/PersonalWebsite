@@ -26,9 +26,7 @@ li {
 }
 #wrapper {
     min-height: 90vh;
-    margin-left: 10vw;
-    margin-right: 10vw;
-    margin-top: 5vh;
+    margin: 10vh 10vw;
     display: flex;
     flex-wrap: wrap;
     align-content: center;
@@ -49,16 +47,15 @@ a:hover{
     align-items: stretch;
     column-gap: 2rem;
     row-gap: 2rem;
+    margin-top: 30px;
 }
 .portfolio-item{
     flex-basis: 32%;
     flex-grow: 1;
-    border-bottom-style: solid;
+    padding:0 10px 0 10px;
+    border-style: solid;
     border-width: 2px;
-    border-image: linear-gradient(90deg, rgba(50,80,120,0.7), rgba(0,0,104, 0)) 1;
-}
-.portfolio-item > p {
-    padding-left: 1rem;
+    border-image: linear-gradient(75deg, rgba(20,170,255,0.7), rgba(255,50,150, 0.7)) 1;
 }
 
 @media only screen and (max-width: 900px) {

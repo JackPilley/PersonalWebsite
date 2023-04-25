@@ -167,6 +167,10 @@ async function main()
     gl.uniform3fv(adsShader.uniforms.sunDirection, directionalLight.direction);
     gl.uniform3fv(adsShader.uniforms.sunColor, directionalLight.color);
 
+    //No idea why, but the shadows don't work in chromium even though I'm using idiomatic webgl as far as I can tell
+    if(!!!window.chrome)
+        gl.uniform1i(adsShader.uniforms.useShadows, 1);
+
     adsShader.StopUsing();
 
     lastTimeStamp = performance.now();

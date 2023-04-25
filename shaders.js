@@ -128,7 +128,8 @@ class ADSShader extends Shader
             sunDirection: this.gl.getUniformLocation(this.program, "uSunDirection"),
             sunColor: this.gl.getUniformLocation(this.program, "uSunColor"),
             lightMatrix: this.gl.getUniformLocation(this.program, "uLightMatrix"),
-            shadowMap: this.gl.getUniformLocation(this.program, "uShadowMap")
+            shadowMap: this.gl.getUniformLocation(this.program, "uShadowMap"),
+            useShadows: this.gl.getUniformLocation(this.program, "uUseShadows")
         };
 
         this.gl.useProgram(this.program);
