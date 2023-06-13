@@ -12,6 +12,9 @@ canvas{
 body{
     background: #101010;
     margin: 0;
+    font-family: sans-serif;
+    color: white;
+    font-size: 1.5rem;
 }
 h1 {
     font-family: sans-serif;
@@ -27,14 +30,7 @@ h2{
 hr {
     border-top: 1px solid #A0A0A0;
 }
-p, ul{
-    font-family: sans-serif;
-    color: white;
-    font-size: 1.5rem;
-}
-li {
-    padding-bottom: 0.3em;
-}
+
 #wrapper {
     display: flex;
     flex-wrap: wrap;
@@ -43,7 +39,6 @@ li {
 #wrapper > section{
     flex-basis: 100%;
 }
-
 #name-and-links{
     display: flex;
     min-height: 100vh;
@@ -51,12 +46,22 @@ li {
     flex-direction: column;
     justify-content: center;
 }
-
+#main-links{
+    margin:auto;
+    width: fit-content;
+}
+#main-links > a {
+    margin: 1rem;
+    display: inline-block;
+}
+#name-and-links > img {
+    max-height: 40vh;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
 #name-and-links > article {
     background-color: #00000080;
-    padding: 20px 10vw;
 }
-
 #portfolio {
     background-color: #00000080;
     padding: 20px 10vw;
@@ -68,35 +73,6 @@ a{
 }
 a:hover{
     text-decoration: underline;
-}
-
-@keyframes prompt-slide {
-    from {
-        transform: translateY(-10px);
-    }
-
-    to {
-        transform: translateY(10px);
-    }
-}
-
-#portfolio-prompt {
-    align-self: center;
-    margin-top: 20px;
-    position: relative;
-    width: 50px;
-    height: 80px;
-}
-#portfolio-prompt > img {
-    position: absolute;
-    animation-name: prompt-slide;
-    animation-duration: 1s;
-    animation-fill-mode: both;
-    animation-direction: alternate;
-    animation-iteration-count: infinite;
-    animation-timing-function: ease-in-out;
-    width: 50px;
-    height: 50px;
 }
 
 #portfolio-container{
@@ -124,11 +100,6 @@ a:hover{
     .portfolio-item > p {
         padding-left: 0;
     }
-
-    #name-and-links > article {
-        padding: 20px 5vw;
-    }
-
     #portfolio {
         padding-left: 5vw;
         padding-right: 5vw;
