@@ -38,19 +38,16 @@ function render(timeStamp)
         gl.uniformMatrix4fv(adsShader.uniforms.projectionMatrix, false, adsShader.projectionMatrix);
         adsShader.StopUsing();
     }
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-
-    //glMatrix.mat4.rotateX(model.transformMatrix, model.transformMatrix, 0.001 * delta);
 
     viewMatrix = glMatrix.mat4.create();
     glMatrix.mat4.lookAt(viewMatrix, [0.0, 2.0, 4.0], [0,0.3,0], [0,1,0]);
     glMatrix.mat4.rotateY(viewMatrix, viewMatrix, 0.0005 * timeStamp);
 
     ShadowPass();
+
     ADSPass();
 
-    window.requestAnimationFrame(render)
+    window.requestAnimationFrame(render);
 }
 
 function ShadowPass()
@@ -62,6 +59,7 @@ function ShadowPass()
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, shadowShader.frameBuffer);
     gl.viewport(0,0,shadowShader.resolution,shadowShader.resolution);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniformMatrix4fv(shadowShader.uniforms.viewMatrix, false, directionalLight.viewMatrix);
 
@@ -81,6 +79,7 @@ function ADSPass()
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniformMatrix4fv(adsShader.uniforms.viewMatrix, false, viewMatrix);
 
@@ -138,7 +137,6 @@ async function main()
     let adsInitResult = adsShader.InitializeFromURL('shaders/model.v', 'shaders/ads.f');
     let shadowInitResult = shadowShader.InitializeFromURL("shaders/shadow.v", "shaders/shadow.f");
     let spherePromise = house.LoadModel("models/house.obj", "textures/house_diffuse.jpg", "textures/house_spec.png", "textures/house_norm.jpg", gl);
-    //let groundPromise = ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
 
     let islandPromise = island.LoadModel("models/floating_island.obj", "textures/island_diffuse.jpg", "textures/island_spec.png", "textures/island_norm.jpg", gl);
 
@@ -147,9 +145,6 @@ async function main()
         fallbackRedirect();
         return;
     }
-
-    //glMatrix.mat4.translate(sphere.transformMatrix, sphere.transformMatrix, [0,1,0]);
-    //glMatrix.mat4.scale(ground.transformMatrix, ground.transformMatrix, [3,1,3]);
 
     models.push(house);
     models.push(island);
@@ -168,8 +163,8 @@ async function main()
     gl.uniform3fv(adsShader.uniforms.sunColor, directionalLight.color);
 
     //No idea why, but the shadows don't work in chromium even though I'm using idiomatic webgl as far as I can tell
-    if(!!!window.chrome)
-        gl.uniform1i(adsShader.uniforms.useShadows, 1);
+    //if(!!!window.chrome)
+    gl.uniform1i(adsShader.uniforms.useShadows, 1);
 
     adsShader.StopUsing();
 
