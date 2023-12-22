@@ -81,8 +81,8 @@ nav > *{
     border: 0;
     background: url("/assets/svg/chevron-circle-right.svg");
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
     z-index: 2;
     display: none;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1.0));
@@ -93,13 +93,13 @@ nav > *{
         display: block;
         position: fixed;
         z-index: 1;
-        left: -250px;
-        transition: all ease-in-out 0.2s;
+        left: -255px;
+        transition: all ease 0.3s;
     }
 
     #nav-toggle-button {
         display: block;
-        transition: all ease-in-out 0.2s;
+        transition: all ease 0.3s;
     }
 
     .nav-button-out {
@@ -107,6 +107,6 @@ nav > *{
     }
     
     .nav-shown {
-        transform: translateX(250px);
+        transform: translateX(255px);
     }
 }
