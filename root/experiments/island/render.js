@@ -99,7 +99,7 @@ function ADSPass()
 
 async function main()
 {
-    canvas = document.querySelector("#canvas");
+    canvas = document.querySelector("#main-canvas");
     gl = canvas.getContext("webgl2");
 
     if(gl === null)
@@ -134,12 +134,12 @@ async function main()
     let island = new Model();
 
     //Request all resources at once then await the results
-    let adsInitResult = adsShader.InitializeFromURL('shaders/model.v', 'shaders/ads.f');
-    let shadowInitResult = shadowShader.InitializeFromURL("shaders/shadow.v", "shaders/shadow.f");
-    let spherePromise = house.LoadModel("models/house.obj", "textures/house_diffuse.jpg", "textures/house_spec.png", "textures/house_norm.jpg", gl);
+    let adsInitResult = adsShader.InitializeFromURL('island/shaders/model.v', 'island/shaders/ads.f');
+    let shadowInitResult = shadowShader.InitializeFromURL("island/shaders/shadow.v", "island/shaders/shadow.f");
+    let spherePromise = house.LoadModel("island/models/house.obj", "island/textures/house_diffuse.jpg", "island/textures/house_spec.png", "island/textures/house_norm.jpg", gl);
     //let groundPromise = ground.LoadModel("models/floor.obj", "textures/grid.png", "textures/spec.png", "textures/norm.png", gl);
 
-    let islandPromise = island.LoadModel("models/floating_island.obj", "textures/island_diffuse.jpg", "textures/island_spec.png", "textures/island_norm.jpg", gl);
+    let islandPromise = island.LoadModel("island/models/floating_island.obj", "island/textures/island_diffuse.jpg", "island/textures/island_spec.png", "island/textures/island_norm.jpg", gl);
 
     if(await adsInitResult === null || await shadowInitResult === null || !await islandPromise || !await spherePromise)
     {

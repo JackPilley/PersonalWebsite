@@ -1,0 +1,30 @@
+#default-wrap{
+    margin: 60px auto 0 auto;
+    max-width: 600px;
+    padding: 20px;
+}
+#default-wrap p{
+    text-align: justify;
+}
+
+.external-link{
+    border-radius: 5px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.external-link:hover{
+    text-decoration: underline;
+}
+
+.external-link img{
+    height: 0.7em;
+    display: inline;
+    padding-left: 10px;
+}
+
+.inline-img{
+    height: 0.7em;
+    display: inline;
+    padding-left: 3px;
+}
