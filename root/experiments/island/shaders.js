@@ -64,6 +64,9 @@ class Shader
         gl.detachShader(program, vertShader);
         gl.detachShader(program, fragShader);
 
+        gl.deleteShader(vertShader);
+        gl.deleteShader(fragShader);
+
         if(!gl.getProgramParameter(program, gl.LINK_STATUS))
         {
             console.log(`Failed to link shader program: ${gl.getProgramInfoLog(program)}`);

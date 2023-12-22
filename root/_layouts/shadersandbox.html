@@ -1,0 +1,9 @@
+---
+layout: default
+style: fullcanvas.css
+---
+
+<canvas id="main-canvas"></canvas>
+{{content}}
+<script src="/assets/js/common/shadersandbox.js"></script>
+<script>window.onload = main("{{ page.shader }}")</script>

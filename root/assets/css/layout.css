@@ -1,0 +1,112 @@
+html, body{
+    margin: 0;
+    font-family: sans-serif;
+}
+
+#flex-wrap{
+    display: flex;
+}
+
+#nav-wrap{
+    flex-grow: 1;
+    max-width: 250px;
+    min-width: 250px;
+    height: 100dvh;
+    overflow-y: auto;
+    border: solid #aaa;
+    border-width:0 1px;
+    background-color: white;
+}
+
+#content-wrap{
+    flex-grow: 1;
+    height: 100dvh;
+    position:relative;
+}
+
+nav{
+    margin: 15px;
+    width: auto;
+}
+
+nav *{
+    font-size: 1rem;
+}
+
+nav > *{
+    display: block;
+    width:auto;
+}
+
+#nav-home-link{
+    display: block;
+    width: auto;
+}
+
+.nav-heading {
+    color: #777;
+    margin: 40px 0px 12px 0px;
+}
+
+.nav-link{
+    padding: 10px;
+    margin: 8px 10px 8px 10px;
+    border-radius: 5px;
+    color: #333;
+    text-decoration: none;
+}
+
+.nav-link:hover{
+    background-color: #ddd;
+}
+
+.nav-link img{
+    height: 1.0em;
+    display: inline;
+    float: right
+}
+
+#nav-current{
+    background-color: #d66;
+    color: white;
+}
+
+#nav-current:hover{
+    background-color: #a33;
+}
+
+#nav-toggle-button {
+    height: 40px;
+    width: 40px;
+    border: 0;
+    background: url("/assets/svg/chevron-circle-right.svg");
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+    display: none;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1.0));
+}
+
+@media only screen and (max-width: 700px) {
+    #nav-wrap{
+        display: block;
+        position: fixed;
+        z-index: 1;
+        left: -250px;
+        transition: all ease-in-out 0.2s;
+    }
+
+    #nav-toggle-button {
+        display: block;
+        transition: all ease-in-out 0.2s;
+    }
+
+    .nav-button-out {
+        transform: translateX(180px) rotate(180deg);
+    }
+    
+    .nav-shown {
+        transform: translateX(250px);
+    }
+}

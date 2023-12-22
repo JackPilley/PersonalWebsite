@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel='icon' type='image/png' href='/favicon.png'>
+        <link rel="stylesheet" href="/assets/css/layout.css">
+        {% if page.style %}
+            <link rel="stylesheet" href="/assets/css/{{page.style}}">
+        {% else %}
+        <link rel="stylesheet" href="/assets/css/default.css">
+        {% endif %}
+        <title>{{ page.title }}</title>
+    </head>
+    <body>
+        <button id="nav-toggle-button" onclick="toggleNav()"></button>
+        <div id="flex-wrap">
+            <div id="nav-wrap">
+                {% include navigation.html %}
+            </div>
+            <div id="content-wrap">
+                {{ content }}
+            </div>
+        </div>
+        <script>
+            function toggleNav() {
+                let btn = document.getElementById("nav-toggle-button");
+                let nav = document.getElementById("nav-wrap");
+                if(!btn.classList.contains("nav-button-out")) {
+                    btn.classList.add("nav-button-out");
+                    nav.classList.add("nav-shown");
+                } else {
+                    btn.classList.remove("nav-button-out");
+                    nav.classList.remove("nav-shown");
+                }
+            }
+        </script>
+    </body>
+</html>
