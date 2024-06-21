@@ -80,8 +80,8 @@ function render(timestamp)
     {
         gl.canvas.width = gl.canvas.clientWidth;
         gl.canvas.height = gl.canvas.clientHeight;
-        gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
-        gl.uniform2fv(resUniform,  [gl.canvas.clientWidth, gl.canvas.clientHeight]);
+        gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+        gl.uniform2fv(resUniform,  [gl.canvas.width, gl.canvas.height]);
     }
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

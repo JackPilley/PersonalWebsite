@@ -5,6 +5,11 @@
 }
 #default-wrap p{
     text-align: justify;
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+#default-wrap h2, #default-wrap h1{
+    margin-bottom: 8px;
 }
 
 .external-link{

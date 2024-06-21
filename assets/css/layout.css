@@ -13,15 +13,16 @@ html, body{
     min-width: 250px;
     height: 100dvh;
     overflow-y: auto;
-    border: solid #aaa;
+    border: solid #ddd;
     border-width:0 1px;
-    background-color: white;
+    background-color: #fafafa;
 }
 
 #content-wrap{
     flex-grow: 1;
     height: 100dvh;
     position:relative;
+    overflow-y: auto;
 }
 
 nav{
