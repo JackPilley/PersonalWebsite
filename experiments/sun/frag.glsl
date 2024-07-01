@@ -76,15 +76,35 @@ float noise(vec3 seed)
 
 void main()
 {
-    float fadeTime = 1.;
-    float scaledTime = time/fadeTime;
-    float floorTime = floor(scaledTime);
+    vec3 seed = vec3(floor(vScreenPos/2.), time);
 
-    vec3 seed = vec3(floor(vScreenPos/4.), floorTime);
-    vec3 nextSeed = vec3(floor(vScreenPos/4.), floorTime + 1.);
+    float noiseVal = noise(seed);
 
-    float val = noise(seed);
-    float nextVal = noise(nextSeed);
-    float fade = scaledTime - floorTime;
-    FragColor = vec4(vec3(mix(val, nextVal, fade)), 1.0);
+    vec2 normalizedPos = vec2(vPosition.x / (resolution.y / resolution.x), vPosition.y);
+    float radius = length(normalizedPos);
+
+    float val = 0.0;
+    float noiseExp = pow(noiseVal, 14.);
+    if(noiseExp < radius*8. - .8) {
+        val = 1.0;
+    }
+
+    if(noiseExp > abs(radius - 0.9)*8. - 0.01) {
+        val = 0.0;
+    }
+
+    if(noiseExp > length(normalizedPos - vec2(cos(time/1.8), sin(time/1.8))*0.9)*4. - 0.2) {
+        val = 0.0;
+    }
+
+    if(noiseExp > length(normalizedPos - vec2(cos(time), sin(time))*0.4)*16. - 0.5) {
+        val = 0.0;
+    }
+
+    float waveA = cos(time + normalizedPos.x*6.)/16. + cos(time*4.5 + normalizedPos.x*9.)/16. - 0.4;
+    float waveB = cos(time*2. + normalizedPos.x*12.)/16. + cos(time*3.5 + normalizedPos.x*4.)/16. - 0.4;
+
+    if(normalizedPos.y < waveA && normalizedPos.y > waveB || normalizedPos.y > waveA && normalizedPos.y < waveB) val = 1. - val;
+
+    FragColor = vec4(vec3(val), 1.0);
 }
