@@ -76,10 +76,13 @@ async function loadRemoteShaderProgram(vertUrl, fragUrl)
 
 function render(timestamp) 
 {
-    if(gl.canvas.width !== gl.canvas.clientWidth || gl.canvas.height !== gl.canvas.clientHeight)
+    const pixelRatio = window.devicePixelRatio;
+    const displayWidth = Math.round(gl.canvas.clientWidth * pixelRatio);
+    const displayHeight = Math.round(gl.canvas.clientHeight * pixelRatio);
+    if(gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight)
     {
-        gl.canvas.width = gl.canvas.clientWidth;
-        gl.canvas.height = gl.canvas.clientHeight;
+        gl.canvas.width = displayWidth;
+        gl.canvas.height = displayHeight;
         gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
         gl.uniform2fv(resUniform,  [gl.canvas.width, gl.canvas.height]);
     }
@@ -104,9 +107,13 @@ async function main(fragUrl)
         return;
     }
 
+    const pixelRatio = window.devicePixelRatio;
+    const displayWidth = Math.round(gl.canvas.clientWidth * pixelRatio);
+    const displayHeight = Math.round(gl.canvas.clientHeight * pixelRatio);
+
     //Make the canvas match the size set by CSS
-    gl.canvas.width = gl.canvas.clientWidth;
-    gl.canvas.height = gl.canvas.clientHeight;
+    gl.canvas.width = displayWidth;
+    gl.canvas.height = displayWidth;
 
     //Basic viewport setup
     gl.viewport(0,0, gl.canvas.clientWidth, gl.canvas.clientHeight);
