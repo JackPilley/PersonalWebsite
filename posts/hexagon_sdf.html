@@ -1,0 +1,88 @@
+---
+layout: post
+title: Hexagon SDF
+---
+
+<h1>Creating a Hexagon SDF</h1>
+<p>An example of this SDF being used can be found <a href="/experiments/hexes.html">here</a>.</p>
+<p>We start with a basic template for an SDF in GLSL.</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    return 0;
+}
+</pre>
+<p>It will be easier if we work with a unit hexagon, so divide out the radius.</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    p /= r;
+    return 0;
+}
+</pre>
+<p>Let&apos;s now examine the symmetry of a hexagon.</p>
+<img class="post-img" src="hexagon_sdf/full_hexagon.svg"/>
+<p>Each quadrant is just a reflection of quadrant 1. We can undo this mirroring by taking the absolute value of our point.</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    p /= r;
+    p = abs(p);
+    return 0;
+}
+</pre>
+<p>Which leaves us with the following shape.</p>
+<img class="post-img" src="hexagon_sdf/quad_1.svg"/>
+<p>
+    We can take advantage of symmetry again.
+</p>
+<img class="post-img" src="hexagon_sdf/reflect.svg"/>
+<p>At this stage our point will be in either section A or section B (above the x axis).
+    If the point is in section A, we reflect into section B.
+</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    p /= r;
+    p = abs(p);
+    const vec2 axis = vec2(0.866025403, 0.5);
+    vec2 reflected = -reflect(p, axis);
+    return 0;
+}
+</pre>
+<p>
+    Note that if the point is in A then, after the reflection, the x position will always be 
+    greater and the y position will always be lesser than before the reflection. We can take
+    advantage of this to avoid branching.
+</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    p /= r;
+    p = abs(p);
+    const vec2 axis = vec2(0.866025403, 0.5);
+    vec2 reflected = -reflect(p, axis);
+    p = vec2(max(p.x, reflected.x), min(p.y, reflected.y));
+    return 0;
+}
+</pre>
+<p>
+    Our point will now be somewhere between the two dotted lines.
+</p>
+<img class="post-img" src="hexagon_sdf/line.svg"/>
+<p>
+    We just need to find the distance to the line segment, assign a sign based on if we&apos;re on the left or right hand side of the line, and scale by the radius.
+    The distance to the line segment is just the distance from our point to a point with the same x value as the line segment, and a y value that is the same as our point but
+    clamped to the length of the line segment.
+</p>
+<pre>
+float sdfHexagon(vec2 p, float r) 
+{
+    p /= r;
+    p = abs(p);
+    const vec2 axis = vec2(0.866025403, 0.5);
+    vec2 reflected = -reflect(p, axis);
+    p = vec2(max(p.x, reflected.x), min(p.y, reflected.y));
+    return length(p - clamp(p, vec2(axis.x, -axis.y), axis)) * sign(p.x - axis.x) * r;
+}
+</pre>

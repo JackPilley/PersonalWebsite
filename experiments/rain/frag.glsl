@@ -2,7 +2,7 @@
 precision mediump float;
 
 // This exponent in a float gives numbers in the range of [0.5, 1.0)
-#define EXPONENT 0x3F000000
+#define EXPONENT 0x3F800000
 // Mask of the mantissa of a float
 #define MASK 0x007FFFFF
 
@@ -49,14 +49,14 @@ ivec3 hash(ivec3 h)
     b ^= b << 9;
 
     c ^= b;
-    c += c >> 2;
-    c ^= c << 4;
+    c += c >> 1;
+    c ^= c << 3;
+    c += c >> 8;
+    c ^= c << 14;
+    c += c >> 23;
+    c ^= c << 11;
     c += c >> 6;
-    c ^= c << 12;
-    c += c >> 20;
-    c ^= c << 13;
-    c += c >> 5;
-    c ^= c << 9;
+    c ^= c << 2;
 
     return ivec3(a,b,c);
 }
@@ -74,7 +74,7 @@ float noise(vec3 seed)
 
     float result = intBitsToFloat((MASK & (h.x ^ h.y ^ h.z)) | EXPONENT);
 
-    return (result-0.5)*2.;
+    return result-1.;
 }
 
 float mapForRegion(vec2 region, vec2 pos)

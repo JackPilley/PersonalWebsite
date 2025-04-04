@@ -1,0 +1,129 @@
+---
+layout: post
+title: Unity and iOS 
+---
+
+<h1>Unity iOS Interop</h1>
+<p>Most of the sources I&apos;ve found that explain how to call Swift functions from Unity, and vice versa, use Objective-C
+    bridging code. This isn&apos;t strictly necessary, since we have the @_cdecl attribute that forces Swift functions to use the
+    C calling convention, and prevents name mangling. However, the attribute is undocumented, so you should be aware it
+    might break in the future. Discussion for formalizing this attribute have been going on for a
+    <a target="_blank" href="https://forums.swift.org/t/formalizing-cdecl/40677">long time<img class="inline-img" src="/assets/svg/external-link.svg"></a>.
+</p>
+<h2>Calling Swift functions from Unity</h2>
+<p>Calling Swift functions from Unity is reasonably simple.
+    Put your Swift source file in Assets/Plugins/iOS and add the @_cdecl attribute to the function you want to call.
+    This makes the function callable using the C calling convention.</p>
+<pre>
+import Foundation
+
+@_cdecl("testFunction")
+public func testFunction(num: Int32) -> UnsafeMutablePointer&lt;CChar&gt; 
+{
+    return strdup("Hello World! The number is \(num)");
+}
+</pre>
+<p>UnsafeMutablePointer&lt;CChar&gt; is a C style string. The strdup function allocates memory for the string, but the
+    Mono runtime takes ownership of the memory and cleans it up for us.</p>
+<p>To call the function from Unity we need to import it using InteropServices. Then we can call it like any other function.</p>
+<pre>
+using UnityEngine;
+using System.Runtime.InteropServices;
+
+public class TestClass : MonoBehaviour 
+{
+    [DllImport ("__Internal")]
+    private static extern string testFunction(int num);
+
+    void Start () 
+    {
+        Debug.Log(testFunction(-12)); //Prints "Hello World! The number is -12"
+    }
+}
+</pre>
+<h2>Calling Unity functions from Swift</h2>
+<p>Swift can&apos;t find Unity functions on its own, so we need to pass them to Swift ourselves.
+    Then we can save the function to call it again later. We&apos;ll start by declaring the function
+    type that Swift will accept and a function to take in the function from Unity.</p>
+<pre>
+import Foundation
+
+public typealias Delegate = @convention(c) () -> Void;
+
+@_cdecl("callDelegate")
+public func callDelegate(delegate: Delegate)
+{
+    delegate();
+}
+</pre>
+<p>The function doesn&apos;t have to be a void function, it can return a value and also take in arguments.</p>
+<p>We need to declare an equivalent delegate type in our Unity script and also add an annotation to the
+    function we want Swift to call. This makes the function available to call using the C calling convention.
+    Then we just call our Swift function to pass the delegate to Swift. Swift can then call the delegate at
+    any time.
+</p>
+<pre>
+using UnityEngine;
+using System.Runtime.InteropServices;
+
+public class TestClass : MonoBehaviour 
+{
+    delegate void DelegateFunc();
+    [AOT.MonoPInvokeCallback(typeof(DelegateFunc))]
+    static void TestDelegate()
+    {
+        Debug.Log("Delegate Called");
+    }
+
+    [DllImport ("__Internal")]
+    private static extern void callDelegate(DelegateFunc func);
+
+    void Start () 
+    {
+        callDelegate(TestDelegate);
+    }
+
+    void Update (){}
+}
+</pre>
+<h2>Opening a browser from Unity</h2>
+<p>Sometimes we want to be able to open a browser without leaving our app. We&apos;ll start by creating the Swift function.
+    We need to get Unity&apos;s view controller so we can make the browser a child of it.
+</p>
+<pre>
+import Foundation
+import SafariServices
+
+@_cdecl("openBrowser")
+public func openBrowser(urlString: UnsafeMutablePointer<CChar>)
+{
+    // Get the app&apos;s root view controller so we can make the web view a child of it
+    if let unityViewController = UnityFramework.getInstance()?.appController()?.rootViewController
+    {
+        // The mono runtime will handle freeing the memory allocated for the c-string
+        if let url = URL(string: String.init(cString: urlString)) 
+        {
+            let webview = SFSafariViewController(url: url);
+            // Shows the webview, the user can dismiss it
+            unityViewController.present(webview, animated: true);
+        }
+    }
+}
+</pre>
+<p>In our Unity script we just need to import the function and call it.</p>
+<pre>
+using UnityEngine;
+using System.Runtime.InteropServices;
+public class TestClass : MonoBehaviour 
+{
+    [DllImport ("__Internal")]
+    private static extern void openBrowser(string url);
+
+    void Start () 
+    {
+        openBrowser("https://google.ca");
+    }
+
+    void Update(){}
+}
+</pre>

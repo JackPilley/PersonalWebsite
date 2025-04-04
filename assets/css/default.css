@@ -5,8 +5,8 @@
 }
 #default-wrap p{
     text-align: justify;
-    margin-top: 8px;
-    margin-bottom: 24px;
+    margin-top: 16px;
+    margin-bottom: 16px;
 }
 #default-wrap h2, #default-wrap h1{
     margin-bottom: 8px;
@@ -32,4 +32,19 @@
     height: 0.7em;
     display: inline;
     padding-left: 3px;
+}
+
+.post-img{
+    display:block;
+    max-width: 80%;
+    padding:10px;
+    margin: auto;
+}
+
+pre{
+    overflow-x:auto;
+    max-width: 100%;
+    border-width: 1px 0 1px 0;
+    border-style: dotted;
+    padding: 5px 0 5px 0;
 }

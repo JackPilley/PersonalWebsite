@@ -2,7 +2,7 @@
 precision mediump float;
 
 // This exponent in a float gives numbers in the range of [0.5, 1.0)
-#define EXPONENT 0x3F000000
+#define EXPONENT 0x3F800000
 // Mask of the mantissa of a float
 #define MASK 0x007FFFFF
 
@@ -44,14 +44,14 @@ ivec3 hash(ivec3 h)
     b ^= b << 9;
 
     c ^= b;
-    c += c >> 2;
-    c ^= c << 4;
+    c += c >> 1;
+    c ^= c << 3;
+    c += c >> 8;
+    c ^= c << 14;
+    c += c >> 23;
+    c ^= c << 11;
     c += c >> 6;
-    c ^= c << 12;
-    c += c >> 20;
-    c ^= c << 13;
-    c += c >> 5;
-    c ^= c << 9;
+    c ^= c << 2;
 
     return ivec3(a,b,c);
 }
@@ -63,7 +63,7 @@ float noise(vec3 seed)
 
     float result = intBitsToFloat((MASK & (h.x ^ h.y ^ h.z)) | EXPONENT);
 
-    return (result-0.5)*2.;
+    return result-1.;
 }
 
 // I derived this function myself. It reflects the test point until we're just testing against
@@ -104,7 +104,8 @@ void main()
     }
 
     float centreDist = sdfHexagon(vec2(vPosition.x, vPosition.y * resolution.y/resolution.x), .5);
-    float offset = noise(vec3(floor((vScreenPos.x + cos(vPosition.y * 10.) * 12.)/2.)));
-    float centreForeground = max(fract(vScreenPos.y/1000. - (time * (offset + 1.) / 4.)) - .7, 0.)/0.3;
+    float offset = noise(vec3(floor((vScreenPos.x + cos(vPosition.y * 10.) * 12.)/2.), 0., 0.));
+    float offsetInitial = noise(vec3(floor((vScreenPos.x + cos(vPosition.y * 10.) * 12.)/2.), 1., 0.));
+    float centreForeground = max(fract((vScreenPos.y + offsetInitial * 1000.)/1000. - (time * (offset + 1.) / 4.)) - .7, 0.)/0.3;
     FragColor = vec4(mix(vec3(centreForeground), FragColor.rgb, smoothstep(-0.01, 0.01, centreDist)), 1.0);
 }
