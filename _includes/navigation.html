@@ -5,15 +5,11 @@
     <a class="nav-link" target="_blank" href="https://github.com/JackPilley">Github<img src="/assets/svg/external-link-light.svg"></a>
     <a class="nav-link" target="_blank" href="https://movingpictures.itch.io/">Itch.io<img src="/assets/svg/external-link-light.svg"></a>
     <h2 class="nav-heading">Experiments and Art</h2>
-    <a class="nav-link" {% if page.url == "/experiments/plasma.html" %} id="nav-current" {% endif %} href="/experiments/plasma.html">Plasma</a>
-    <a class="nav-link" {% if page.url == "/experiments/island.html" %} id="nav-current" {% endif %} href="/experiments/island.html">Floating Island</a>
-    <a class="nav-link" {% if page.url == "/experiments/raymarch.html" %} id="nav-current" {% endif %} href="/experiments/raymarch.html">Raymarching</a>
-    <a class="nav-link" {% if page.url == "/experiments/shadernoise.html" %} id="nav-current" {% endif %} href="/experiments/shadernoise.html">Shader Noise</a>
-    <a class="nav-link" {% if page.url == "/experiments/sun.html" %} id="nav-current" {% endif %} href="/experiments/sun.html">Sun</a>
-    <a class="nav-link" {% if page.url == "/experiments/rain.html" %} id="nav-current" {% endif %} href="/experiments/rain.html">Rain</a>
-    <a class="nav-link" {% if page.url == "/experiments/hexes.html" %} id="nav-current" {% endif %} href="/experiments/hexes.html">Hexes</a>
-    <h2 class="nav-heading">Posts</h2>
-    <a class="nav-link" {% if page.url == "/posts/unity_and_ios.html" %} id="nav-current" {% endif %} href="/posts/unity_and_ios.html">Unity and iOS</a>
-    <a class="nav-link" {% if page.url == "/posts/hexagon_sdf.html" %} id="nav-current" {% endif %} href="/posts/hexagon_sdf.html">Hexagon SDF</a>
-    <a class="nav-link" {% if page.url == "/posts/shader_noise.html" %} id="nav-current" {% endif %} href="/posts/shader_noise.html">Hash Shader Noise</a>
+    {% for article in site.experiments %}
+        <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
+    {% endfor %}
+    <h2 class="nav-heading">Thoughts and Articles</h2>
+    {% for article in site.articles %}
+        <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
+    {% endfor %}
 </nav>

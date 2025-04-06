@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            403
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/assets/css/error.css">
+    </head>
+    <body>
+        <h1>403</h1>
+        <h2>Forbidden</h2>
+        <p>
+            You&apos;re trying to access a file or folder that you aren&apos;t allowed to.
+        </p>
+        <p id="home"><a href="/index.html">Back Home</a></p>
+    </body>
+</html>

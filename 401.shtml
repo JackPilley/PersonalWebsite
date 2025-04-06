@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            401
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/assets/css/error.css">
+    </head>
+    <body>
+        <h1>401</h1>
+        <h2>Authentication Required</h2>
+        <p>
+            You must provide authentication information before accessing this file/folder.
+        </p>
+        <p id="home"><a href="/index.html">Back Home</a></p>
+    </body>
+</html>

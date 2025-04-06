@@ -1,0 +1,7 @@
+collections:
+  articles:
+    output: true
+    sort_by: title
+  experiments:
+    output: true
+    sort_by: title

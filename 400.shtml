@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            400
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/assets/css/error.css">
+    </head>
+    <body>
+        <h1>400</h1>
+        <h2>Bad Request</h2>
+        <p>
+            Your request couldn&apos;t be processed. Furthermore, the error was probably caused by your web browser.
+        </p>
+        <p id="home"><a href="/">Back Home</a></p>
+    </body>
+</html>
