@@ -8,7 +8,7 @@
     {% for article in site.experiments %}
         <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
     {% endfor %}
-    <h2 class="nav-heading">Thoughts and Articles</h2>
+    <h2 class="nav-heading">Articles</h2>
     {% for article in site.articles %}
         <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
     {% endfor %}
