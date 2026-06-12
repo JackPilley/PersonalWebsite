@@ -4,9 +4,14 @@ style: fullcanvas.css
 ---
 
 <canvas id="main-canvas"></canvas>
-{% if page.blurb %}
+{% if page.blurb or page.writedate%}
 <div style="background-color: rgba(255,255,255,0.95);position: absolute; bottom: 0; right:0; max-width: 40rem;border-style:solid; border-width: 1px 0 0 1px;border-color: #ddd;">
-    <p style="padding: 20px;margin:auto;">{{page.blurb}}</p>
+    {% if page.writedate %}
+        <p style="padding: 10px;margin:auto;font-size: 0.9rem;font-weight: bold;">{{page.writedate}}</p>
+    {% endif %}
+    {% if page.blurb %}
+        <p style="padding: 10px;margin:auto;">{{page.blurb}}</p>
+    {% endif %}
 </div>
 {% endif %}
 {{content}}

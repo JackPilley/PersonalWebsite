@@ -6,11 +6,11 @@
     <a class="nav-link" target="_blank" href="https://movingpictures.itch.io/">Itch.io<img src="/assets/svg/external-link-light.svg"></a>
     <a class="nav-link" target="_blank" href="https://www.linkedin.com/in/jpilley">LinkedIn<img src="/assets/svg/external-link-light.svg"></a>
     <h2 class="nav-heading">Experiments and Art</h2>
-    {% for article in site.experiments %}
+    {% for article in site.experiments reversed %}
         <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
     {% endfor %}
     <h2 class="nav-heading">Articles</h2>
-    {% for article in site.articles %}
+    {% for article in site.articles  reversed%}
         <a class="nav-link" href="{{article.url}} " {% if page.url == article.url %} id="nav-current" {% endif %}>{{article.title}}</a>
     {% endfor %}
     <h2 class="nav-heading">Thoughts</h2>

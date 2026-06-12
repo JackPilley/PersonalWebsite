@@ -1,10 +1,10 @@
 collections:
   articles:
     output: true
-    sort_by: title
+    sort_by: writedate
   experiments:
     output: true
-    sort_by: title
+    sort_by: writedate
   thoughts:
     output: true
     sort_by: writedate
