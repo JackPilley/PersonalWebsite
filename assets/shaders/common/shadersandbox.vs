@@ -8,6 +8,7 @@ out vec2 vScreenPos;
 
 uniform vec2 resolution;
 uniform float time;
+uniform vec3 clock;
 
 void main()
 {

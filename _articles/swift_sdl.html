@@ -1,0 +1,150 @@
+---
+layout: post
+title: SDL 3 and Swift
+---
+
+<h1>Using SDL 3 with Swift on Windows</h1>
+<p>
+    If you just want a template to get started with, you can clone this repository: <a target="_blank" href="https://github.com/JackPilley/SwiftWindowsSDLTemplate">Swift SDL Windows Template<img class="inline-img" src="/assets/svg/external-link.svg"></a>.
+    Also leave a pull request if you know a better way to do this, I&apos;m not an expert.
+</p>
+<p>
+    Start by running the swift package init command in the folder you want to create your project in:
+</p>
+<pre>
+swift package init --type executable
+</pre>
+<p>
+    This creates a basic Hello World program.
+</p>
+<p>
+    Next we need to <a target="_blank" href="https://www.libsdl.org/">download SDL<img class="inline-img" src="/assets/svg/external-link.svg"></a> and extract it. Create a folder in your project directory called Dependencies,
+    and inside that folder create another folder called SDL3 (or whatever version of SDL you want to use). Your folder structure should look like this:
+</p>
+<pre>
+ProjectName
+├───Dependencies
+│   └───SDL3
+└───Sources
+</pre>
+<p>
+    Inside the SDL3 folder you just created, place SDL&apos;s lib files. You specifically want the x64 ones.
+</p>
+<p>
+    Now inside your Sources folder, create a folder called CSDL3 (it is convention to prefix C libraries with a C). Then place the contents of SDL&apos;s include folder in the folder you just created. Your folder structure should now look like this:
+</p>
+<pre>
+ProjectName
+├───Dependencies
+│   └───SDL3
+└───Sources
+    └───CSDL3
+        └───SDL3
+</pre>
+<p>
+    We need to tell the Swift compiler about the SDL module, so create a file called module.modulemap in the Sources/CSDL3 folder, and in the same folder create a file called SDL.h
+</p>
+<p>
+    In the modulemap file, we provide the name of the module, which header to include, which library to link, and what to make available from the module:
+</p>
+<pre>
+module CSDL3 [system] {
+	header "SDL3.h"
+	link "SDL3"
+	export *
+}
+</pre>
+<p>And in the header file we just include SDL&apos;s header:</p>
+<pre>
+#pragma once
+#include &lt;SDL3/SDL.h&gt;
+</pre>
+<p>Now we need to tell the compiler to compile and link the CSDL3 module. Add a new system library target to your Package.swift file and then add it as a dependency to your executable target. You will also need to specific the
+    path of your executable target now. We then need to tell the compiler where to look for SDL&apos;s header files, and tell the linker where to find the lib files:
+</p>
+<pre>
+// swift-tools-version: 6.1
+
+import PackageDescription
+
+let package = Package(
+	name: "PackageName",
+	targets: [
+		.executableTarget(
+			name: "PackageName",
+			dependencies: ["CSDL3"],
+			path: "Sources",
+			cSettings: [
+				.unsafeFlags(["-I", "Sources/CSDL3"])
+			],
+			linkerSettings: [
+				.unsafeFlags(["-L", "Dependencies/SDL3/"])
+			]
+		),
+		.systemLibrary(
+			name: "CSDL3",
+		),
+	]
+)
+</pre>
+<p>
+    Now we can create a basic SDL program that opens a window in our main.swift file:
+</p>
+<pre>
+import CSDL3
+
+SDL_Init(SDL_INIT_VIDEO)
+let window = SDL_CreateWindow("Hello world!", 500, 500, 0)
+var event = SDL_Event()
+var quit = false
+
+while !quit {
+	while SDL_PollEvent(&event) {
+		switch SDL_EventType(Int32(event.type)) {
+			case SDL_EVENT_QUIT:
+				quit = true
+			default:
+				break
+		}
+	}
+}
+
+SDL_DestroyWindow(window)
+
+SDL_Quit()
+</pre>
+<p>
+    At this point you should be able to build your project, but before you run it you need to manually copy the .dll file from the Dependencies/SDL3 folder into your target&apos;s build folder (I.E. the folder the executable is in).
+</p>
+<p>
+    After you have copied the .dll file into place, you can run your project using the swift run command:
+</p>
+<pre>
+swift run
+</pre>
+<p>
+    Your final file structure should look like this (build folder omitted):
+</p>
+<pre>
+ProjectName
+├───Package.swift
+├───Dependencies
+│   └───SDL3
+│       ├───SDL3.dll
+│       └───SDL3.lib
+└───Sources
+    ├───main.swift
+    └───CSDL3
+        ├───module.modulemap
+        ├───SDL3.h
+        └───SDL3
+            └─── [Lots of SDL header files]
+</pre>
+<p>
+    If this doesn&apos;t work for you, have a look at the template repository linked at the top of the page and try to see if there is anything different from what your final setup looks like.
+</p>
+<p>
+    This all came about because I have been using Swift a lot at work recently, and I&apos;ve really been enjoying it, so I wanted to try experimenting with it on my own time.
+    That said, this took me way longer to figure out than it should have, so hopefully this saves someone else from pulling out their hair like I was. I&apos;ve been using a Macbook
+    at work, and Swift is very much an Apple first langauge. There isn&apos;t a lot of information out there about using Swift on Windows.
+</p>

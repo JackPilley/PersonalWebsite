@@ -1,0 +1,443 @@
+---
+layout: post
+title: Bezier SDF
+---
+
+<h1>Creating a Bezier Curve SDF</h1>
+<p>An example of this SDF being used can be found <a href="/experiments/bezier.html">here</a>.</p>
+
+<p>
+    I should start by making it clear this absolutely is not the best way to implement this SDF. I would strongly recommend using
+    Inigo Quilez&apos;s version, which you can find 
+    <a target="_blank" href="https://iquilezles.org/articles/distfunctions2d/">here<img class="inline-img" src="/assets/svg/external-link.svg"></a>.
+    The math in this article is correct, to the best of my knowledge, but my implementation has some issues with floating point precision errors.
+</p>
+<p>
+    A second point before we begin: this SDF is for a quadratic Bezier curve. I think creating an SDF of a cubic Bezier is probably
+    not feasible, since it will require finding the roots of a quartic function.
+</p>
+<p>
+    I&apos;m going to assume you are somewhat familiar with Bezier curves. If you aren&apos;t, then I highly recommend Freya Holmér&apos;s 
+    <a target="_blank" href="https://www.youtube.com/watch?v=aVwxzDHniEw">video<img class="inline-img" src="/assets/svg/external-link.svg"></a>.
+</p>
+<p>
+    Starting with the usual lerp function
+</p>
+<math display="block">
+    <mtext>lerp(a, b, t) = a(1-t)+bt</mtext>
+</math>
+<p>
+    Given three points
+    <math>
+        <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover>
+    </math>,
+    a quadratic Bezier curve is defined as
+</p>
+<math display="block">
+    <mtext>f(t) = lerp(
+        lerp(</mtext>
+        <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>, t),
+        lerp(</mtext>
+        <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>, t), t)</mtext>
+</math>
+<p>
+    If we expand out the lerps, we get
+</p>
+<math display="block">
+    <mtext>f(t) = (</mtext>
+    <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover> 
+    <mtext>- 2</mtext>
+    <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover>
+     <mtext>+</mtext>
+     <mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover>
+     <mtext>)</mtext>
+     <msup><mn>t</mn><mn>2</mn></msup>
+    <mtext>+ (-2</mtext>
+    <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover>
+     <mtext>+ 2</mtext>
+     <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover>
+     <mtext>)t + </mtext>
+     <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover>
+</math>
+<p>
+    For convenience, and to save me from typing so much, let 
+    <math>
+        <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+         <mtext>=</mtext>
+        <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover> 
+        <mtext>- 2</mtext>
+        <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover>
+        <mtext>+</mtext> 
+        <mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover>
+    </math>,
+    and 
+    <math>
+        <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+         <mtext>= -2</mtext>
+         <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover> 
+         <mtext>+ 2</mtext>
+         <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover>
+    </math>.
+    So our function is now simply
+</p>
+<math display="block">
+    <mtext>f(t) = </mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <msup><mn>t</mn><mn>2</mn></msup> 
+    <mtext>+</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>t + </mtext>
+    <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover>
+</math>
+<p>
+    Ok, we have our function. Now what? Our goal is that, given a point <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math>, we want to find the distance between <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math>
+    and the curve. To do this, we will first find the closest point on the curve to <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math>.
+</p>
+<p>
+    If we imagine a circle centred on our point <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math>, we can expand the circle outward until it intersects our curve at exactly one point.
+    The curve will be tangent to the circle that that point since, if it wasn&apos;t, the curve would have to cross into the circle, and thus cross out of it again, meaning the circle would be intersecting
+    the curve at two points.
+</p>
+<p>
+    Now consider a vector <math><mover><mi>d</mi><mo mathsize="75%">&rarr;</mo></mover></math> that points from the point <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math> to the point on the
+    curve given by <math><mtext>f(t)</mtext></math>.
+</p>
+<math display="block">
+    <mover><mi>d</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>(t) = </mtext>
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>- f(t)</mtext>
+</math>
+<p>
+    It follows that the tangent of the curve at its closest point to <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math> will be orthogonal to
+    <math><mover><mi>d</mi><mo mathsize="75%">&rarr;</mo></mover></math>.
+</p>
+<img class="post-img" src="bezier_sdf/starting.svg"/>
+<p>
+    The tangent of our curve is given by its derivative with respect to <math><mtext>t</mtext></math>.
+</p>
+<math display="block">
+    <mtext>f '(t) = 2</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>t +</mtext> 
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+</math>
+<p>
+    And so, what we want is the value of <math><mtext>t</mtext></math> where <math><mover><mi>d</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>(t) &middot; f '(t) = 0</mtext></math>.
+</p>
+<p>
+    If you expand out the dot product, you get a cubic equation with the following coefficients
+</p>
+<math display="block">
+    <mtext>a = -2</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover> 
+    <mtext>&middot;</mtext>
+     <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+</math>
+<math display="block">
+    <mtext>b = -(</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover> 
+    <mtext>&middot;</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>) - (2</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>)</mtext>
+</math>
+<math display="block">
+    <mtext>c = (2</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext>
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>) - (</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>) - (2</mtext>
+    <mover><mi>M</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext>
+    <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>)</mtext>
+</math>
+<math display="block">
+    <mtext>d = (</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext> 
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>) - (</mtext>
+    <mover><mi>N</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>&middot;</mtext>
+    <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>)</mtext>
+</math>
+<p>
+    The coefficients are all scalar values, so our goal is now to find the roots of this cubic equation. I relied entirely on <a target="_blank" href="https://en.wikipedia.org/wiki/Cubic_equation">this<img class="inline-img" src="/assets/svg/external-link.svg"></a> Wikipedia article to learn how to do so.
+    Deriving a way to find the roots of a cubic equation is well beyond me.
+</p>
+<p>
+    We need to manipulate our cubic equation into a &quot;depressed&quot; cubic of the form
+</p>
+<math display="block">
+    <msup><mn>x</mn><mn>3</mn></msup><mtext>+ mx + n = 0</mtext>
+</math>
+<p>
+    We can ignore <math><mtext>x</mtext></math> for now, since it&apos;s just t with an offset, which is what we&apos;re trying to find. <math><mtext>m</mtext></math> and <math><mtext>n</mtext></math> are defined as
+</p>
+<math display="block">
+    <mtext>m = </mtext><mfrac>
+            <mrow><mtext>3ac - </mtext><msup><mn>b</mn><mn>2</mn></msup></mrow>
+            <mrow>3<msup><mn>a</mn><mn>2</mn></msup></mrow>
+        </mfrac>
+</math>
+<br>
+<math display="block">
+    <mtext>n = </mtext><mfrac>
+            <mrow><mn>2</mn><msup><mn>b</mn><mn>3</mn></msup><mtext> - 9abc + 27</mtext><msup><mn>a</mn><mn>2</mn></msup><mn>d</mn></mrow>
+            <mrow><mn>27</mn><msup><mn>a</mn><mn>3</mn></msup></mrow>
+        </mfrac>
+</math>
+<p>
+    There are two situations we need to consider. The first is when there is only a single root to our cubic equation, like in the image above. But consider a situation like this
+</p>
+<img class="post-img" src="bezier_sdf/three_roots.svg"/>
+<p>
+    In this case, there are three values for <math><mn>t</mn></math> where our cubic will be zero.
+</p>
+<p>
+    Fortunately, there is an easy way to know how many roots our cubic equation will have.
+</p>
+<math display="block">
+    <mtext>dis =</mtext> 
+    <mfrac>
+        <mrow><msup><mn>n</mn><mn>2</mn></msup></mrow><mrow><mn>4</mn></mrow>
+    </mfrac> <mo>+</mo> <mfrac><mrow><msup><mn>m</mn><mn>3</mn></msup></mrow><mrow><mn>27</mn></mrow></mfrac>
+</math>
+<p>
+    If the discriminant, <math><mtext>dis</mtext></math>, is greater than zero, then there's exactly one real root. Otherwise, there are three real roots, one of which might be a double root.
+</p>
+<p>
+    As stated earlier, to convert the root of our depressed cubic back to the root of our starting cubic, we just need to
+    adjust the result by a constant value, <math><mtext>adj</mtext></math>.
+</p>
+<math display="block">
+    <mtext>adj = </mtext>
+    <mfrac><mrow><mn>b</mn></mrow><mrow><mn>3a</mn></mrow></mfrac>
+</math>
+<p>
+    Let&apos;s start with the case where there&apos;s only one root, since it&apos;s simpler.
+    This is just copied from the previously linked wikipedia article, but split up to more closely match the GLSL code.
+</p>
+<math display="block">
+    <mtext>s = </mtext><msqrt><mtext>dis</mtext></msqrt>
+</math>
+<br>
+<math display="block">
+    <msub><mn>u</mn><mn>1</mn></msub> <mo>=</mo> <mfrac><mrow><mn>-n</mn></mrow><mrow><mn>2</mn></mrow></mfrac> <mn>+ s</mn>
+</math>
+<br>
+<math display="block">
+    <msub><mn>u</mn><mn>1</mn></msub> <mo>=</mo> <mfrac><mrow><mn>-n</mn></mrow><mrow><mn>2</mn></mrow></mfrac> <mn>- s</mn>
+</math>
+<br>
+<math display="block">
+    <mtext>t = clamp(</mtext>
+    <mroot><msub><mn>u</mn><mn>1</mn></msub><mn>3</mn></mroot>
+    <mtext>+</mtext>
+    <mroot><msub><mn>u</mn><mn>2</mn></msub><mn>3</mn></mroot> 
+    <mtext>- adj, 0, 1)</mtext>
+</math>
+<p>
+    The <math><mtext>clamp(v, min, max)</mtext></math> function constrains the input, <math><mn>v</mn></math>, to be between the min and max values.
+</p>
+<p>
+    Now that we have our root, we just have to calculate the distance between <math><mtext>f(t)</mtext></math> and <math><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover></math>
+</p>
+<math display="block">
+    <mtext>distance = |</mtext><mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover><mtext> - f(t)|</mtext>
+</math>
+<p>
+    The case where there are three roots is more complex.
+</p>
+<math display="block">
+    <mtext>&theta; = arccos</mtext>
+    <mtext mathsize="175%">(</mtext>
+    <mfrac>
+        <mrow><mn>3n</mn></mrow>
+        <mrow><mn>2m</mn></mrow>
+    </mfrac>
+    <msqrt>
+        <mfrac>
+            <mrow><mn>-m</mn></mrow>
+            <mrow><mn>3</mn></mrow>
+        </mfrac>
+    </msqrt>
+    <mtext mathsize="175%">)</mtext>
+</math>
+<p>
+    It is worth noting that, while this is a correct way to calculate &theta;, it tends to produce significant floating point errors. I&apos;m not sure why that is, but 
+    my best guess is that it is a combination of <math><mn>m</mn></math> and <math><mn>n</mn></math> potentially being significantly different orders of magnitude, arccos only being approximated in
+    GLSL, and WebGL using 16 bit floats, all together resulting in significant compounding errors.
+</p>
+<p>
+    Google Gemini gave me the following, which seems to produce better results by keeping the values of each step of the calculation closer in magnitude.
+    I&apos;ll admit it&apos;s unlikely I would have been able to figure this out on my own, so chalk up a win for AI, much to my annoyance.
+</p>
+<math display="block">
+    <mtext>&theta; = arccos</mtext>
+    <mo mathsize="175%">(</mo>
+    <mfrac>
+        <mrow><mtext>-n</mtext></mrow>
+        <mrow><mtext>2</mtext><msqrt>
+            <mo>-</mo><msup><mn>m</mn><mn>3</mn></msup><mo>/</mo><mn>27</mn>
+        </msqrt></mrow></mfrac>
+    <mo mathsize="175%">)</mo>
+</math>
+<p>
+    My typesetting is really falling apart here. Now we can find our roots.
+</p>
+<math display="block">
+    <mtext>s = 2</mtext>
+    <msqrt><mtext>-m/3</mtext></msqrt>
+</math>
+<br>
+<math display="block">
+    <msub><mn>t</mn><mn>1</mn></msub>
+    <mtext> = clamp(s&middot;cos(</mtext>
+    <mfrac>
+        <mrow><mtext>&theta;</mtext></mrow>
+        <mrow><mn>3</mn></mrow>
+    </mfrac>
+    <mtext>) - adj, 0, 1)</mtext>
+</math>
+<br>
+<math display="block">
+    <msub><mn>t</mn><mn>2</mn></msub>
+    <mtext> = clamp(s&middot;cos(</mtext>
+    <mfrac>
+        <mrow><mtext>&theta; - 2&pi;</mtext></mrow>
+        <mrow><mn>3</mn></mrow>
+    </mfrac>
+    <mtext>) - adj, 0, 1)</mtext>
+</math>
+<br>
+<math display="block">
+    <msub><mn>t</mn><mn>3</mn></msub>
+    <mtext> = clamp(s&middot;cos(</mtext>
+    <mfrac>
+        <mrow><mtext>&theta; - 4&pi;</mtext></mrow>
+        <mrow><mn>3</mn></mrow>
+    </mfrac>
+    <mtext>) - adj, 0, 1)</mtext>
+</math>
+<p>
+    And finally, we get the distance between our point and the point given by the closest root
+</p>
+<math>
+    <mtext>distance = min(|</mtext>
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext> - f(</mtext>
+    <msub><mn>t</mn><mn>1</mn></msub>
+    <mtext>)|, |</mtext>
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>- f(</mtext>
+    <msub><mn>t</mn><mn>2</mn></msub>
+    <mtext>)|, |</mtext>
+    <mover><mi>p</mi><mo mathsize="75%">&rarr;</mo></mover>
+    <mtext>- f(</mtext>
+    <msub><mn>t</mn><mn>3</mn></msub>
+    <mtext>)|)</mtext>
+</math>
+<p>
+    Note that there is a case we didn't consider. If <math>
+        <mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>B</mi><mo mathsize="75%">&rarr;</mo></mover><mtext>,</mtext>
+        <mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover>
+    </math>, are co-linear, we can end up with a quadratic equation rather than a cubic equation. In that case,
+    we just use the SDF for a straight line with <math><mover><mi>A</mi><mo mathsize="75%">&rarr;</mo></mover></math> and <math><mover><mi>C</mi><mo mathsize="75%">&rarr;</mo></mover></math> as the end points.
+</p>
+<p>
+    Here is the final SDF written out in GLSL.
+</p>
+<pre>
+float lineSDF(vec2 p, vec2 A, vec2 B)
+{
+    p = p - A;
+    B = B - A;
+
+    float s = dot(p,B)/dot(B,B);
+
+    return length(p - B * clamp(s, 0., 1.));
+}
+
+float bezierSDF(vec2 p, vec2 A, vec2 B, vec2 C)
+{
+    vec2 M = A - (2.0 * B) + C;
+    vec2 N = (-2.0 * A) + (2.0 * B);
+
+    float a = dot(-2.0 * M, M);
+
+    // If 'a' is zero (or close enough to it), then we have a straight line. We have to handle that
+    // differently, otherwise we'll get a division by zero
+    if(abs(a) < 0.0001)
+    {
+        return lineSDF(p, A, C);
+    }
+
+    float b = -dot(N, M) - dot(2.0 * M, N);
+
+    float c = dot(2.0 * M, p) - dot(N, N) - dot(2.0 * M, A);
+
+    float d = dot(N, p) - dot(N, A);
+
+    float m = (3.0 * a * c - b * b) / (3.0 * a * a);
+    float n = (2.0 * b * b * b - 9.0 * a * b * c + 27.0 * a * a * d) / (27.0 * a * a * a);
+
+    float dis = (n*n)/4. + (m*m*m)/27.;
+    float adj = b/(3.*a);
+
+    if(dis > 0.)
+    {
+        float s = sqrt(dis);
+        float u1 = -n/2. + s;
+        float u2 = -n/2. - s;
+        float t = sign(u1)*pow(abs(u1), 1./3.) + sign(u2)*pow(abs(u2), 1./3.) - adj;
+        t = clamp(t, 0., 1.);
+        return distance(p, M*t*t + N*t + A);
+    }
+    else
+    {
+        //float ac = acos(((3.*n)/(2.*m)) * sqrt(-m/3.));
+        float ac = acos(-n/(2.*sqrt(-m*m*m/27.)));
+
+        float s = 2. * sqrt(-m/3.);
+        float r1 = clamp(s * cos(ac/3.) - adj, 0., 1.);
+        float r2 = clamp(s * cos((ac - 2.*PI)/3.) - adj, 0., 1.);
+        float r3 = clamp(s * cos((ac - 4.*PI)/3.) - adj, 0., 1.);
+
+        vec2 l1 = p - (M*r1*r1 + N*r1 + A);
+        vec2 l2 = p - (M*r2*r2 + N*r2 + A);
+        vec2 l3 = p - (M*r3*r3 + N*r3 + A);
+
+        return sqrt(min(min(dot(l1,l1), dot(l2,l2)), dot(l3,l3)));
+    }
+}
+</pre>
+
+<h2>Addendum</h2>
+<p>
+    I mentioned at the beginning of the article that an SDF of a cubic Bezier curve is likely unfeasible.
+    However, since then, I&apos;ve started to think otherwise. We had to find the roots of a cubic function
+    for the quadratic Bezier SDF. Similarly, we would need to find the roots of a quartic function for the
+    SDF of a cubic Bezier. Wikipedia has the <a target="_blank" href="https://upload.wikimedia.org/wikipedia/commons/9/99/Quartic_Formula.svg">full equation<img class="inline-img" src="/assets/svg/external-link.svg"></a>
+    written out. While it looks extremely long and complicated, it only uses square and cube roots, and large portions of it are
+    reused several times. It also doesn&apos;t use the arccos function, which is where I think the issues with imprecision crop up.
+</p>
+<p>
+    Speaking of imprecision. While the equation given to me by Gemini produced better results, there are still issues when the
+    control points of the curve in certain posistions. Parts of the curve will disappear, or it will be cut short.
+</p>

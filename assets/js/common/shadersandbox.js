@@ -3,6 +3,7 @@
 let gl;
 let resUniform;
 let timeUniform;
+let clockUniform;
 
 function compileShader(type, src)
 {
@@ -91,6 +92,13 @@ function render(timestamp)
 
     gl.uniform1f(timeUniform, timestamp/1000);
 
+    let clockArray = new Float32Array(3);
+    let now = new Date();
+    clockArray[0] = now.getHours();
+    clockArray[1] = now.getMinutes();
+    clockArray[2] = now.getSeconds();
+    gl.uniform3fv(clockUniform, clockArray);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     window.requestAnimationFrame(render);
@@ -125,6 +133,7 @@ async function main(fragUrl)
     const posAttr = gl.getAttribLocation(shaderProgram, "aPosition");
     resUniform = gl.getUniformLocation(shaderProgram, "resolution");
     timeUniform = gl.getUniformLocation(shaderProgram, "time");
+    clockUniform = gl.getUniformLocation(shaderProgram, "clock");
     gl.uniform2fv(resUniform,  [gl.canvas.clientWidth, gl.canvas.clientHeight]);
     gl.uniform1f(timeUniform, 0);
     gl.enableVertexAttribArray(posAttr);

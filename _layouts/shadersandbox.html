@@ -11,4 +11,4 @@ style: fullcanvas.css
 {% endif %}
 {{content}}
 <script src="/assets/js/common/shadersandbox.js"></script>
-<script>window.onload = main("{{ page.shader }}")</script>
+<script>window.addEventListener("load", () => {main("{{ page.shader }}")})</script>

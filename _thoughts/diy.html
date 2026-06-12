@@ -1,0 +1,53 @@
+---
+layout: post
+title: Dangerous DIY
+writedate: 2025-06-03
+---
+
+<h1>Dangerous DIY and Taking Security Seriously</h1>
+
+<p>
+    A couple years ago I noticed one of the services we used at work would show you your password if you&apos;d forgotten it. A coworker overheard me
+    discussing it with a colleague and said something along the lines of 
+</p>
+<p>
+    &quot;Why is that an issue? You just have to do a secure transaction.&quot;
+</p>
+<p>
+    After some back and forth, it became clear he didn&apos;t understand the difference between hashing and encryption. I&apos;d like to add that this guy
+    was a web developer, and really into cryptocurrencies, which made his misunderstanding a bit more surprising.
+</p>
+<p>
+    This is a pretty simple mistake to make, and a pretty good example of why we should all check our assumptions when dealing with sensitive data. Because,
+    and I cannot stress this enough, <strong>passwords are sensitive data!</strong> While it would be nice if users didn&apos;t reuse passwords, we all know
+    they do. If you mess up, and your users&apos; passwords leak, it&apos;s not enough to just say they should have used a unique password.
+</p>
+<p>
+    Designing secure software is a wickedly complicated challenge. You probably know the difference between encryption and hashing. But how confident are you
+    that you know how to use a hash function properly?
+</p>
+<p>
+    Another example.
+</p>
+<p>
+    More recently, I was watching a video on YouTube lamenting the complexity of libraries used for handling website logins and demonstrating how simple it
+    is to do it yourself. This video correctly stated that passwords should be hashed, but it used the wrong kind of hash function. There are hash functions
+    specifically made for hashing passwords. A key feature of these functions is that they are slow. Not slow enough that a user would notice the delay, but
+    enough to extend the time it takes to brute force a password by a couple orders of magnitude.
+</p>
+<p>
+    Do you know how to properly salt a password hash?
+</p>
+<p>
+    Do you know how to properly pepper a password hash? (Yes, it&apos;s a real thing) 
+</p>
+<p>
+    I mean, we all know you hash the password on the server side and not the client side, right?
+</p>
+<p>
+    These are just the errors I&apos;ve seen and the pitfalls I know about, and I do not specialize in security at all.
+</p>
+<p>
+    Unless you&apos;re someone who specializes in this stuff, or you&apos;re just learning and won&apos;t make your project publicly available,
+    swallow your pride, and use a library made by someone who knows what they&apos;re doing (not me).
+</p>

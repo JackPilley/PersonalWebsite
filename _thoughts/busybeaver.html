@@ -1,0 +1,26 @@
+---
+layout: post
+title: Busiest Beaver
+writedate: 2025-06-11
+---
+
+<h1>Why Busy Beaver Grows So Fast</h1>
+
+<p>
+    The busy beaver function, BB(n), gives the maximum number of 1&apos;s that can be written to the tape of a halting Turing machine with n instruction cards.
+</p>
+<p>
+    BB(n) is famous for being an incredibly fast growing function. In fact, it grows faster than any computable function. I didn&apos;t really put much thought into
+    why this is until recently.
+</p>
+<p>
+    Without writing a proper proof, since that would be well beyond me for something like this, here is how I justify it to myself.
+</p>
+<p>
+    According to the Church-Turing thesis, we can convert any computable function into a set of instruction cards. So, given some function f(n) there must be
+    a number of cards &#x1D4CD; that can encode f(n) plus 1. Thus BB(&#x1D4CD;) is at least as big as f(&#x1D4CD;) plus 1.
+</p>
+<p>
+    The problem is there&apos;s one part of f(n) which continues growing, which is n itself. Our Turing machine needs to be able to encode the input. So we would need to show
+    that the number of extra cards needed to encode n grows slowly enough that there&apos;s a point we can encode f(n) plus 1 and n itself within n cards.
+</p>

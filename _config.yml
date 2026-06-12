@@ -5,3 +5,6 @@ collections:
   experiments:
     output: true
     sort_by: title
+  thoughts:
+    output: true
+    sort_by: writedate

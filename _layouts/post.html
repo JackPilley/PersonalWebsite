@@ -3,5 +3,8 @@ layout: default
 ---
 
 <div id="default-wrap">
+    {% if page.writedate %}
+    <p class="date">{{page.writedate}}</p>
+    {% endif %}
     {{content}}
 </div>

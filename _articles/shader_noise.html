@@ -51,13 +51,13 @@ title: Hash Shader Noise
     bit manipulation on them. Luckily there&apos;s a function in GLSL for that called floatBitsToInt (there is a reverse as well).
     I won&apos;t pretend to be an expert on hashing functions. I just saw what Paul Hsieh <a target="_blank" href="https://www.azillionmonkeys.com/qed/hash.html">was doing<img class="inline-img" src="/assets/svg/external-link.svg"></a>
     in his final avalanche step and mimicked it. My naive understanding of what&apos;s happening is we shift our bits down for the additions so that
-    the changes cascade up through the carry bits and since we would be more likely to lose information from the carry overflowing if we shifted up.
+    the changes cascade up through the carry bits since we would be more likely to lose information from the carry overflowing if we shifted up.
     Then we shift up for the XORs to make sure the lower bits have enough of an effect on the upper bits. We need to shift by a variety of distances
     to make sure the bits get thoroughly mixed up. We&apos;re not going for anything cryptographically secure here, it just needs to look
     random enough to pass visual inspection.
 </p>
 <p>
-    Now that we have our bits, we can do a bitwise AND on them and a mask of the lower 23 bits to get our mantissa. In hex, this would be 0x007FFFFF.
+    Now that we have our bits, we can do a bitwise AND on them with a mask of the lower 23 bits to get our mantissa. In hex, this would be 0x007FFFFF.
     Then we do a bitwise OR to set our desired sign and exponent. Again in hex, we use 0x3F800000. We then convert our bits back into a float, and
     subtract 1 to get our final value.
 </p>
@@ -130,5 +130,5 @@ float noise(vec3 seed)
 </p>
 <img class="post-img" src="shader_noise/histogram.png"/>
 <p>
-    Which has a reasonably even distribution. Even enough for some shader art at least.
+    Which has a reasonably flat distribution. Flat enough for some shader art at least.
 </p>
